@@ -1,0 +1,15 @@
+{
+  "name": "qr-legacy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local full-stack Memorylife app (React + Express + SQLite)",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspaces",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client"
+  }
+}
