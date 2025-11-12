@@ -4,7 +4,8 @@ import axios from 'axios';
 import { useTheme } from '../context/ThemeContext.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://memorylife-ee.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80';
 
