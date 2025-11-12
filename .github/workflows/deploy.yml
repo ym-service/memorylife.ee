@@ -4,6 +4,10 @@ on:
   # Запускать при пуше в ветку main
   push:
     branches: [ main ]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
