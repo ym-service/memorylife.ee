@@ -3,10 +3,12 @@ import { useEffect } from 'react';
 const OrderModal = ({
   open,
   onClose,
-  onSubmit,
   orderForm,
   onChange,
-  orderState,
+  orderDetails = {},
+  orderEmail = 'my.agent.use1@gmail.com',
+  formAction = '#',
+  redirectUrl = 'https://ym-service.github.io/memorylife.ee',
   isDark,
 }) => {
   useEffect(() => {
@@ -38,6 +40,36 @@ const OrderModal = ({
 
   const mutedText = isDark ? 'text-slate-400' : 'text-slate-600';
 
+  const {
+    slug = '',
+    legacyUrl = '',
+    plateOptions = {},
+    previewImage = '',
+  } = orderDetails;
+
+  const asNumber = (value, fallback) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
+  const normalizedPlate = {
+    material: plateOptions.material || 'steel',
+    border: Boolean(plateOptions.border),
+    widthCm: asNumber(plateOptions.widthCm, 10),
+    heightCm: asNumber(plateOptions.heightCm, 10),
+    thicknessMm: asNumber(plateOptions.thicknessMm, 2),
+    cornerRadiusMm: asNumber(plateOptions.cornerRadiusMm, 2),
+  };
+
+  const plateSummary = [
+    `Material: ${normalizedPlate.material}`,
+    `Dimensions: ${normalizedPlate.widthCm}cm x ${normalizedPlate.heightCm}cm`,
+    `Thickness: ${normalizedPlate.thicknessMm}mm`,
+    `Corner radius: ${normalizedPlate.cornerRadiusMm}mm`,
+    `Engraved border: ${normalizedPlate.border ? 'Yes' : 'No'}`,
+  ].join('\n');
+
+  const plateOptionsJson = JSON.stringify(normalizedPlate);
+  const subject = slug ? `Memorylife plaque order: ${slug}` : 'Memorylife plaque order';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
       <div
@@ -52,13 +84,10 @@ const OrderModal = ({
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-500">
               Memorylife tab
             </p>
-            <h3 className="mt-2 text-2xl font-semibold">
-              Order a Memorylife plaque
-            </h3>
+            <h3 className="mt-2 text-2xl font-semibold">Order a Memorylife plaque</h3>
             <p className={`mt-1 text-sm ${mutedText}`}>
-              We will email{' '}
-              <span className="font-semibold text-brand-400">my.agent.use1@gmail.com</span>{' '}
-              with your request and follow up directly.
+              This form sends your request directly to{' '}
+              <span className="font-semibold text-brand-400">{orderEmail}</span> through Formsubmit.
             </p>
           </div>
           <button
@@ -79,7 +108,25 @@ const OrderModal = ({
           </button>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <form
+          action={formAction}
+          method="POST"
+          encType="multipart/form-data"
+          className="mt-6 space-y-4"
+        >
+          <input type="hidden" name="_subject" value={subject} />
+          <input type="hidden" name="_replyto" value={orderForm.email} />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="_next" value={redirectUrl} />
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="Legacy slug" value={slug} />
+          <input type="hidden" name="Legacy URL" value={legacyUrl} />
+          <input type="hidden" name="Plate details" value={plateSummary} />
+          <input type="hidden" name="Plate options (JSON)" value={plateOptionsJson} />
+          {previewImage && (
+            <input type="hidden" name="Preview image (data URL)" value={previewImage} />
+          )}
+
           <div className="space-y-2">
             <label htmlFor="modal-name" className="text-sm font-medium">
               Name
@@ -141,32 +188,33 @@ const OrderModal = ({
             />
           </div>
 
-          {orderState.error && (
-            <p
-              className={`rounded-2xl px-4 py-3 text-sm font-medium ${
-                isDark ? 'bg-red-500/10 text-red-300' : 'bg-red-50 text-red-600'
-              }`}
-            >
-              {orderState.error}
+          <div className="space-y-2">
+            <label htmlFor="modal-attachment" className="text-sm font-medium">
+              Attach artwork or reference (optional)
+            </label>
+            <input
+              type="file"
+              id="modal-attachment"
+              name="attachment"
+              accept=".png,.jpg,.jpeg,.pdf"
+              className={inputClasses}
+            />
+            <p className={`text-xs ${mutedText}`}>
+              Upload logos, sketches, or measurements to help us manufacture the plaque.
             </p>
-          )}
-          {orderState.success && (
-            <p
-              className={`rounded-2xl px-4 py-3 text-sm font-medium ${
-                isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-700'
-              }`}
-            >
-              {orderState.success}
-            </p>
-          )}
+          </div>
+
+          <p className={`text-xs ${mutedText}`}>
+            After submission you will be redirected back to {redirectUrl}. Remember to open your email
+            and confirm the activation message from Formsubmit the first time you send the form.
+          </p>
 
           <div className="flex items-center gap-3">
             <button
               type="submit"
-              disabled={orderState.loading}
-              className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-center text-lg font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-brand-300"
+              className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-center text-lg font-semibold text-white transition hover:bg-brand-500"
             >
-              {orderState.loading ? 'Sending order...' : 'Send order email'}
+              Send order email
             </button>
             <button
               type="button"

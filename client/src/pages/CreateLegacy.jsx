@@ -7,8 +7,19 @@ import ThemeToggle from '../components/ThemeToggle.jsx';
 
 const API_URL = 'https://memorylife-ee.onrender.com';
 const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
-const DEFAULT_ORDER_ENDPOINT = 'https://formsubmit.co/ajax/my.agent.use1@gmail.com';
+const ORDER_EMAIL = import.meta.env.VITE_ORDER_EMAIL || 'my.agent.use1@gmail.com';
+const ORDER_REDIRECT_URL =
+  import.meta.env.VITE_ORDER_REDIRECT_URL || 'https://ym-service.github.io/memorylife.ee';
+const DEFAULT_ORDER_ENDPOINT = `https://formsubmit.co/${ORDER_EMAIL}`;
 const ORDER_FORM_ENDPOINT = import.meta.env.VITE_ORDER_FORM_ENDPOINT || DEFAULT_ORDER_ENDPOINT;
+const DEFAULT_PLATE_OPTIONS = {
+  material: 'steel',
+  border: false,
+  widthCm: 10,
+  heightCm: 10,
+  thicknessMm: 2,
+  cornerRadiusMm: 2,
+};
 
 const initialFormState = {
   title: '',
@@ -29,13 +40,8 @@ const CreateLegacy = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
-  const [orderState, setOrderState] = useState({
-    loading: false,
-    success: '',
-    error: ''
-  });
   const [isOrderModalOpen, setOrderModalOpen] = useState(false);
-  const [plateOptions, setPlateOptions] = useState(null);
+  const [plateOptions, setPlateOptions] = useState(DEFAULT_PLATE_OPTIONS);
   const [previewImage, setPreviewImage] = useState('');
 
   const { theme } = useTheme();
@@ -101,11 +107,7 @@ const CreateLegacy = () => {
         title: payload.title
       });
       setFormData(initialFormState);
-      setOrderState({
-        loading: false,
-        success: '',
-        error: ''
-      });
+      setOrderForm(initialOrderState);
       setOrderModalOpen(true);
     } catch (err) {
       const message = err?.response?.data?.message || 'Failed to create a Memorylife page.';
@@ -115,85 +117,6 @@ const CreateLegacy = () => {
     }
   };
 
-  const handleOrderSubmit = async (event) => {
-    event.preventDefault();
-    if (!result) {
-      setOrderState({
-        loading: false,
-        success: '',
-        error: 'Create a Memorylife page first to receive a slug.'
-      });
-      return;
-    }
-
-    if (!plateOptions) {
-      setOrderState({
-        loading: false,
-        success: '',
-        error: 'Preview is still rendering. Please try again in a moment.'
-      });
-      return;
-    }
-
-    setOrderState({
-      loading: true,
-      success: '',
-      error: ''
-    });
-
-    try {
-      const payload = {
-        Name: orderForm.name,
-        Email: orderForm.email,
-        Phone: orderForm.phone || 'not provided',
-        Message: orderForm.message,
-        'Legacy slug': result.slug,
-        'Legacy URL': result.legacyUrl,
-        'Plaque details': [
-          `Material: ${plateOptions.material}`,
-          `Dimensions: ${plateOptions.widthCm}cm x ${plateOptions.heightCm}cm`,
-          `Thickness: ${plateOptions.thicknessMm}mm`,
-          `Corner radius: ${plateOptions.cornerRadiusMm}mm`,
-          `Engraved border: ${plateOptions.border ? 'Yes' : 'No'}`
-        ].join('\n'),
-        _replyto: orderForm.email,
-        _subject: `Memorylife plaque order: ${result.slug}`,
-        _template: 'table'
-      };
-
-      if (previewImage) {
-        payload['Preview image (data URL)'] = previewImage;
-      }
-
-      const response = await fetch(ORDER_FORM_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error('Third-party form service rejected the submission.');
-      }
-
-      setOrderState({
-        loading: false,
-        success:
-          'Order sent via Formsubmit! Please check your inbox (and spam folder) for confirmation.',
-        error: ''
-      });
-      setOrderForm(initialOrderState);
-    } catch (err) {
-      const message = err?.message || 'Could not send the order via Formsubmit.';
-      setOrderState({
-        loading: false,
-        success: '',
-        error: message
-      });
-    }
-  };
 
   const cardBase = isDark
     ? 'rounded-3xl border border-white/5 bg-slate-900/80 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur'
@@ -352,10 +275,17 @@ const CreateLegacy = () => {
       <OrderModal
         open={isOrderModalOpen}
         onClose={() => setOrderModalOpen(false)}
-        onSubmit={handleOrderSubmit}
         orderForm={orderForm}
         onChange={handleOrderChange}
-        orderState={orderState}
+        orderDetails={{
+          slug: result?.slug || '',
+          legacyUrl: result?.legacyUrl || '',
+          plateOptions: plateOptions || DEFAULT_PLATE_OPTIONS,
+          previewImage
+        }}
+        orderEmail={ORDER_EMAIL}
+        formAction={ORDER_FORM_ENDPOINT}
+        redirectUrl={ORDER_REDIRECT_URL}
         isDark={isDark}
       />
     </div>
