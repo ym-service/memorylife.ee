@@ -7,8 +7,9 @@ import ThemeToggle from '../components/ThemeToggle.jsx';
 
 const API_URL = 'https://memorylife-ee.onrender.com';
 const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
-const ORDER_FORM_ENDPOINT =
-  import.meta.env.VITE_ORDER_FORM_ENDPOINT || 'https://formsubmit.co/my.agent.use1@gmail.com';
+const DEFAULT_ORDER_EMAIL = 'my.agent.use1@gmail.com';
+const DEFAULT_ORDER_ENDPOINT = `https://formsubmit.co/ajax/${encodeURIComponent(DEFAULT_ORDER_EMAIL)}`;
+const ORDER_FORM_ENDPOINT = import.meta.env.VITE_ORDER_FORM_ENDPOINT || DEFAULT_ORDER_ENDPOINT;
 
 const initialFormState = {
   title: '',
@@ -142,36 +143,36 @@ const CreateLegacy = () => {
     });
 
     try {
-      const formPayload = new FormData();
-      formPayload.append('Name', orderForm.name);
-      formPayload.append('Email', orderForm.email);
-      formPayload.append('Phone', orderForm.phone || 'not provided');
-      formPayload.append('Message', orderForm.message);
-      formPayload.append('Legacy slug', result.slug);
-      formPayload.append('Legacy URL', result.legacyUrl);
-      formPayload.append(
-        'Plaque details',
-        [
+      const payload = {
+        Name: orderForm.name,
+        Email: orderForm.email,
+        Phone: orderForm.phone || 'not provided',
+        Message: orderForm.message,
+        'Legacy slug': result.slug,
+        'Legacy URL': result.legacyUrl,
+        'Plaque details': [
           `Material: ${plateOptions.material}`,
           `Dimensions: ${plateOptions.widthCm}cm x ${plateOptions.heightCm}cm`,
           `Thickness: ${plateOptions.thicknessMm}mm`,
           `Corner radius: ${plateOptions.cornerRadiusMm}mm`,
           `Engraved border: ${plateOptions.border ? 'Yes' : 'No'}`
-        ].join('\n')
-      );
+        ].join('\n'),
+        _replyto: orderForm.email,
+        _subject: `Memorylife plaque order: ${result.slug}`,
+        _template: 'table'
+      };
+
       if (previewImage) {
-        formPayload.append('Preview image (data URL)', previewImage);
+        payload['Preview image (data URL)'] = previewImage;
       }
-      formPayload.append('_replyto', orderForm.email);
-      formPayload.append('_subject', `Memorylife plaque order: ${result.slug}`);
-      formPayload.append('_template', 'table');
 
       const response = await fetch(ORDER_FORM_ENDPOINT, {
         method: 'POST',
         headers: {
-          Accept: 'application/json'
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: formPayload
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
