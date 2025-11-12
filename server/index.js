@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-//const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const PDFDocument = require('pdfkit');
 const { Drawing } = require('dxf-writer');
@@ -20,53 +20,41 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
-const dbPath = path.join(__dirname, 'database.db');
-const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-  if (err) {
-    console.error('Failed to initialize database connection', err);
-  } else {
-    console.log(`SQLite database ready at ${dbPath}`);
-  }
+const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+const poolConfig = { connectionString };
+
+if (connectionString && /^postgres(?:ql)?:\/\//i.test(connectionString)) {
+  poolConfig.ssl = { rejectUnauthorized: false };
+}
+
+const pool = new Pool(poolConfig);
+
+pool.on('error', (err) => {
+  console.error('PostgreSQL pool error', err);
 });
 
-db.serialize(() => {
-  db.run(
-    `CREATE TABLE IF NOT EXISTS legacies (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+const ensureSchema = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS legacies (
+      id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       content TEXT NOT NULL,
       image_url TEXT,
       slug TEXT UNIQUE NOT NULL
-    )`,
-    (err) => {
-      if (err) {
-        console.error('Failed to create legacies table', err);
-      }
-    }
-  );
+    )
+  `);
+};
+
+ensureSchema().catch((err) => {
+  console.error('Failed to initialize PostgreSQL schema', err);
 });
 
-const run = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.run(sql, params, function runCallback(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(this);
-      }
-    });
-  });
+const run = (sql, params = []) => pool.query(sql, params);
 
-const get = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(row);
-      }
-    });
-  });
+const get = async (sql, params = []) => {
+  const result = await pool.query(sql, params);
+  return result.rows[0] || null;
+};
 
 const slugSeedFromTitle = (title = '') => {
   const normalized = title
@@ -83,7 +71,7 @@ const generateUniqueSlug = async (seed) => {
       .toString(36)
       .padStart(2, '0')}`;
     const candidate = `${seed}-${suffix}`;
-    const existing = await get('SELECT id FROM legacies WHERE slug = ?', [candidate]);
+    const existing = await get('SELECT id FROM legacies WHERE slug = $1', [candidate]);
     if (!existing) {
       return candidate;
     }
@@ -272,7 +260,7 @@ app.post('/api/legacy', async (req, res) => {
     const slug = await generateUniqueSlug(slugSeedFromTitle(trimmedTitle));
 
     await run(
-      'INSERT INTO legacies (title, content, image_url, slug) VALUES (?, ?, ?, ?)',
+      'INSERT INTO legacies (title, content, image_url, slug) VALUES ($1, $2, $3, $4)',
       [trimmedTitle, trimmedContent, normalizedImage, slug]
     );
 
@@ -286,9 +274,10 @@ app.post('/api/legacy', async (req, res) => {
 app.get('/api/legacy/:slug', async (req, res) => {
   const { slug } = req.params;
   try {
-    const legacy = await get('SELECT title, content, image_url, slug FROM legacies WHERE slug = ?', [
-      slug,
-    ]);
+    const legacy = await get(
+      'SELECT title, content, image_url, slug FROM legacies WHERE slug = $1',
+      [slug]
+    );
     if (!legacy) {
       return res.status(404).json({ message: 'Legacy not found.' });
     }
