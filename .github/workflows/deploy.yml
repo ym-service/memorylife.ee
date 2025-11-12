@@ -1,0 +1,44 @@
+name: Deploy Client to GitHub Pages
+
+on:
+  # Запускать при пуше в ветку main
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 # Укажите вашу версию Node.js
+
+      - name: Install Dependencies
+        # Мы заходим в папку client и устанавливаем зависимости
+        run: cd client && npm install
+
+      - name: Build Project
+        # Запускаем сборку из папки client
+        # (Если у вас Vue/Vite, команда build правильная)
+        run: cd client && npm run build
+
+      - name: Setup Pages
+        # Настраиваем GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Artifact
+        # Загружаем "артефакт" (результат сборки)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Укажите здесь вашу папку сборки!
+          # Для Vite/React это обычно 'client/dist' или 'client/build'
+          path: 'client/dist' 
+
+      - name: Deploy to GitHub Pages
+        # Финальный шаг деплоя
+        id: deployment
+        uses: actions/deploy-pages@v4
