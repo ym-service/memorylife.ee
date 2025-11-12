@@ -6,11 +6,11 @@ import './index.css';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
-  </React.StrictMode>
+<React.StrictMode>
+  <ThemeProvider>
+    <BrowserRouter basename="/memorylife.ee/">
+      <App />
+    </BrowserRouter>
+  </ThemeProvider>
+</React.StrictMode>
 );
