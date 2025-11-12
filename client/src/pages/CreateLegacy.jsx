@@ -10,8 +10,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
 const ORDER_EMAIL = import.meta.env.VITE_ORDER_EMAIL || 'my.agent.use1@gmail.com';
 const ORDER_REDIRECT_URL =
   import.meta.env.VITE_ORDER_REDIRECT_URL || 'https://ym-service.github.io/memorylife.ee';
-const DEFAULT_ORDER_ENDPOINT = `https://formsubmit.co/${ORDER_EMAIL}`;
-const ORDER_FORM_ENDPOINT = import.meta.env.VITE_ORDER_FORM_ENDPOINT || DEFAULT_ORDER_ENDPOINT;
+const ORDER_FORM_ENDPOINT =
+  import.meta.env.VITE_STATICFORMS_ENDPOINT || 'https://api.staticforms.xyz/submit';
+const ORDER_API_KEY =
+  import.meta.env.VITE_STATICFORMS_API_KEY || 'sf_nibfjh3dc3gn0afn3bkj0lgd';
 const DEFAULT_PLATE_OPTIONS = {
   material: 'steel',
   border: false,
@@ -285,6 +287,7 @@ const CreateLegacy = () => {
         }}
         orderEmail={ORDER_EMAIL}
         formAction={ORDER_FORM_ENDPOINT}
+        apiKey={ORDER_API_KEY}
         redirectUrl={ORDER_REDIRECT_URL}
         isDark={isDark}
       />

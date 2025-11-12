@@ -7,7 +7,8 @@ const OrderModal = ({
   onChange,
   orderDetails = {},
   orderEmail = 'my.agent.use1@gmail.com',
-  formAction = '#',
+  formAction = 'https://api.staticforms.xyz/submit',
+  apiKey = '',
   redirectUrl = 'https://ym-service.github.io/memorylife.ee',
   isDark,
 }) => {
@@ -87,7 +88,7 @@ const OrderModal = ({
             <h3 className="mt-2 text-2xl font-semibold">Order a Memorylife plaque</h3>
             <p className={`mt-1 text-sm ${mutedText}`}>
               This form sends your request directly to{' '}
-              <span className="font-semibold text-brand-400">{orderEmail}</span> through Formsubmit.
+              <span className="font-semibold text-brand-400">{orderEmail}</span> through StaticForms.
             </p>
           </div>
           <button
@@ -114,11 +115,10 @@ const OrderModal = ({
           encType="multipart/form-data"
           className="mt-6 space-y-4"
         >
-          <input type="hidden" name="_subject" value={subject} />
-          <input type="hidden" name="_replyto" value={orderForm.email} />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_next" value={redirectUrl} />
-          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="accessKey" value={apiKey} />
+          <input type="hidden" name="replyTo" value={orderForm.email} />
+          <input type="hidden" name="subject" value={subject} />
+          <input type="hidden" name="redirectTo" value={redirectUrl} />
           <input type="hidden" name="Legacy slug" value={slug} />
           <input type="hidden" name="Legacy URL" value={legacyUrl} />
           <input type="hidden" name="Plate details" value={plateSummary} />
@@ -126,6 +126,14 @@ const OrderModal = ({
           {previewImage && (
             <input type="hidden" name="Preview image (data URL)" value={previewImage} />
           )}
+          <input
+            type="text"
+            name="honeypot"
+            className="hidden"
+            tabIndex="-1"
+            autoComplete="off"
+            aria-hidden="true"
+          />
 
           <div className="space-y-2">
             <label htmlFor="modal-name" className="text-sm font-medium">
@@ -205,8 +213,8 @@ const OrderModal = ({
           </div>
 
           <p className={`text-xs ${mutedText}`}>
-            After submission you will be redirected back to {redirectUrl}. Remember to open your email
-            and confirm the activation message from Formsubmit the first time you send the form.
+            After submission StaticForms will redirect you to {redirectUrl}. Double-check your inbox
+            (and spam folder) for the StaticForms confirmation email the first time you submit.
           </p>
 
           <div className="flex items-center gap-3">
