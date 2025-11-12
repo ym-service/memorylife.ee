@@ -7,6 +7,8 @@ import ThemeToggle from '../components/ThemeToggle.jsx';
 
 const API_URL = 'https://memorylife-ee.onrender.com';
 const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
+const ORDER_FORM_ENDPOINT =
+  import.meta.env.VITE_ORDER_FORM_ENDPOINT || 'https://formsubmit.co/my.agent.use1@gmail.com';
 
 const initialFormState = {
   title: '',
@@ -140,22 +142,51 @@ const CreateLegacy = () => {
     });
 
     try {
-      await axios.post(`${API_BASE_URL}/order`, {
-        ...orderForm,
-        slug: result.slug,
-        legacyUrl: result.legacyUrl,
-        plateOptions,
-        previewImage
+      const formPayload = new FormData();
+      formPayload.append('Name', orderForm.name);
+      formPayload.append('Email', orderForm.email);
+      formPayload.append('Phone', orderForm.phone || 'not provided');
+      formPayload.append('Message', orderForm.message);
+      formPayload.append('Legacy slug', result.slug);
+      formPayload.append('Legacy URL', result.legacyUrl);
+      formPayload.append(
+        'Plaque details',
+        [
+          `Material: ${plateOptions.material}`,
+          `Dimensions: ${plateOptions.widthCm}cm x ${plateOptions.heightCm}cm`,
+          `Thickness: ${plateOptions.thicknessMm}mm`,
+          `Corner radius: ${plateOptions.cornerRadiusMm}mm`,
+          `Engraved border: ${plateOptions.border ? 'Yes' : 'No'}`
+        ].join('\n')
+      );
+      if (previewImage) {
+        formPayload.append('Preview image (data URL)', previewImage);
+      }
+      formPayload.append('_replyto', orderForm.email);
+      formPayload.append('_subject', `Memorylife plaque order: ${result.slug}`);
+      formPayload.append('_template', 'table');
+
+      const response = await fetch(ORDER_FORM_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json'
+        },
+        body: formPayload
       });
+
+      if (!response.ok) {
+        throw new Error('Third-party form service rejected the submission.');
+      }
+
       setOrderState({
         loading: false,
-        success: 'Order sent! We will reach out to the email you provided.',
+        success:
+          'Order sent via Formsubmit! Please check your inbox (and spam folder) for confirmation.',
         error: ''
       });
       setOrderForm(initialOrderState);
     } catch (err) {
-      const message =
-        err?.response?.data?.message || 'Could not send the order. Please try again later.';
+      const message = err?.message || 'Could not send the order via Formsubmit.';
       setOrderState({
         loading: false,
         success: '',
