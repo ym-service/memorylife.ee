@@ -7,8 +7,7 @@ import ThemeToggle from '../components/ThemeToggle.jsx';
 
 const API_URL = 'https://memorylife-ee.onrender.com';
 const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
-const DEFAULT_ORDER_EMAIL = 'my.agent.use1@gmail.com';
-const DEFAULT_ORDER_ENDPOINT = `https://formsubmit.co/ajax/${encodeURIComponent(DEFAULT_ORDER_EMAIL)}`;
+const DEFAULT_ORDER_ENDPOINT = 'https://formsubmit.co/ajax/my.agent.use1@gmail.com';
 const ORDER_FORM_ENDPOINT = import.meta.env.VITE_ORDER_FORM_ENDPOINT || DEFAULT_ORDER_ENDPOINT;
 
 const initialFormState = {
