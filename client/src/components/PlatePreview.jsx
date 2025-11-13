@@ -19,6 +19,13 @@ const SHAPE_OPTIONS = [
   { id: 'star4', label: 'Star of David' },
 ];
 
+const SHAPE_SAFE_SCALE = {
+  rectangle: 0.96,
+  ellipse: 0.9,
+  star5: 0.6,
+  star4: 0.58,
+};
+
 const defaultDimensions = { width: 10, height: 10, depth: 0.2 };
 
 const buildStarShape = (points, width, height, innerScale = 0.45) => {
@@ -379,7 +386,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   };
 
   const generateEngravingCanvas = useCallback(
-    async ({ text, url: qrUrl, border: borderEnabled, slug: slugLabel }) => {
+    async ({ text, url: qrUrl, border: borderEnabled, slug: slugLabel, shape: shapeType }) => {
       if (!engravingCanvasRef.current) {
         engravingCanvasRef.current = document.createElement('canvas');
       }
@@ -402,30 +409,38 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       const safeZone = TEXTURE_RESOLUTION * 0.08;
       const workingWidth = TEXTURE_RESOLUTION - safeZone * 2;
       const workingHeight = TEXTURE_RESOLUTION - safeZone * 2;
+      const safeScale = SHAPE_SAFE_SCALE[shapeType] ?? 0.85;
+      const safeWidth = workingWidth * safeScale;
+      const safeHeight = workingHeight * safeScale;
+      const safeLeft = safeZone + (workingWidth - safeWidth) / 2;
+      const safeTop = safeZone + (workingHeight - safeHeight) / 2;
 
       const label = text.length ? text : 'Memorylife';
-      let fontSize = workingWidth * 0.22;
+      let fontSize = safeWidth * 0.22;
       ctx.font = `600 ${fontSize}px 'Inter', sans-serif`;
-      const maxLabelWidth = workingWidth * 0.9;
+      const maxLabelWidth = safeWidth * 0.9;
       while (ctx.measureText(label).width > maxLabelWidth && fontSize > 34) {
         fontSize -= 4;
         ctx.font = `600 ${fontSize}px 'Inter', sans-serif`;
       }
-      const labelY = safeZone + fontSize * 0.6;
+      const labelY = safeTop + fontSize * 0.8;
       ctx.fillText(label, canvas.width / 2, labelY);
 
-      const slugFontSize = Math.max(fontSize * 0.35, workingWidth * 0.07);
+      const slugFontSize = Math.max(fontSize * 0.35, safeWidth * 0.07);
       ctx.font = `500 ${slugFontSize}px 'Inter', sans-serif`;
       ctx.fillStyle = '#d1d5db';
-      const slugY = labelY + slugFontSize * 1.3;
+      const slugY = labelY + slugFontSize * 1.2;
       ctx.fillText(slugLabel, canvas.width / 2, slugY);
       ctx.fillStyle = '#ffffff';
 
-      const qrAvailableHeight = workingHeight - (slugY - safeZone) - slugFontSize * 1.6;
-      const qrSize = Math.min(workingWidth, Math.max(qrAvailableHeight, workingHeight * 0.4)) * 0.95;
-      const qrCenterY = slugY + slugFontSize * 1.2 + qrSize / 2;
-      const qrTop = Math.min(qrCenterY - qrSize / 2, canvas.height - safeZone - qrSize);
-      const qrLeft = (canvas.width - qrSize) / 2;
+      const qrAvailableHeight = safeTop + safeHeight - slugY - slugFontSize * 0.8;
+      const qrSize = Math.min(safeWidth, Math.max(qrAvailableHeight, safeHeight * 0.4)) * 0.92;
+      const qrTopClamp = Math.max(slugY + slugFontSize * 0.6, safeTop);
+      let qrTop = qrTopClamp;
+      if (qrTop + qrSize > safeTop + safeHeight) {
+        qrTop = safeTop + safeHeight - qrSize;
+      }
+      const qrLeft = canvas.width / 2 - qrSize / 2;
       const qrCanvas = document.createElement('canvas');
       try {
         await QRCode.toCanvas(qrCanvas, qrUrl || 'https://memorylife.local', {
@@ -478,6 +493,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         url: engravingUrl,
         border,
         slug: engravingSlug,
+        shape,
       });
     } catch (err) {
       console.error('Failed to build engraving map', err);
@@ -585,6 +601,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     engravingUrl,
     generateEngravingCanvas,
     material,
+    shape,
   ]);
 
   useEffect(() => {
