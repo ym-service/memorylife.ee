@@ -26,6 +26,15 @@ const SHAPE_SAFE_SCALE = {
   star4: 0.58,
 };
 
+const SHAPE_SAFE_BORDER_SCALE = {
+  rectangle: 0.96,
+  ellipse: 0.92,
+  star5: 0.82,
+  star4: 0.8,
+};
+
+const LABEL_SCALE_FACTOR = 0.75;
+
 const defaultDimensions = { width: 10, height: 10, depth: 0.2 };
 
 const buildStarShape = (points, width, height, innerScale = 0.45) => {
@@ -98,7 +107,9 @@ const assignMaterialGroups = (geometry) => {
     const b = index.getX(faceOffset + 1);
     const c = index.getX(faceOffset + 2);
     const nz = (normals.getZ(a) + normals.getZ(b) + normals.getZ(c)) / 3;
-    return nz > 0.05 ? 0 : 1;
+    if (nz > 0.4) return 0;
+    if (nz < -0.4) return 2;
+    return 1;
   };
 
   for (let face = 0; face < faceCount; face += 1) {
@@ -167,6 +178,38 @@ const createGeometryForShape = (shapeType, size) => {
   assignMaterialGroups(geometry);
   remapFrontFaceUVs(geometry);
   return geometry;
+};
+
+const build2dOutlinePoints = (shapeType, width, height) => {
+  switch (shapeType) {
+    case 'rectangle':
+      return [
+        [-width / 2, -height / 2],
+        [width / 2, -height / 2],
+        [width / 2, height / 2],
+        [-width / 2, height / 2],
+      ];
+    case 'ellipse': {
+      const steps = 64;
+      const pts = [];
+      for (let i = 0; i < steps; i += 1) {
+        const theta = (i / steps) * Math.PI * 2;
+        pts.push([(width / 2) * Math.cos(theta), (height / 2) * Math.sin(theta)]);
+      }
+      return pts;
+    }
+    case 'star5':
+      return buildStarShape(5, width, height).getPoints(32).map((p) => [p.x, p.y]);
+    case 'star4':
+      return buildStarShape(4, width, height, 0.5).getPoints(32).map((p) => [p.x, p.y]);
+    default:
+      return [
+        [-width / 2, -height / 2],
+        [width / 2, -height / 2],
+        [width / 2, height / 2],
+        [-width / 2, height / 2],
+      ];
+  }
 };
 
 const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
@@ -400,12 +443,6 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      if (borderEnabled) {
-        ctx.lineWidth = 14;
-        ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, canvas.width - ctx.lineWidth * 2, canvas.height - ctx.lineWidth * 2);
-      }
-
       const safeZone = TEXTURE_RESOLUTION * 0.08;
       const workingWidth = TEXTURE_RESOLUTION - safeZone * 2;
       const workingHeight = TEXTURE_RESOLUTION - safeZone * 2;
@@ -415,8 +452,30 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       const safeLeft = safeZone + (workingWidth - safeWidth) / 2;
       const safeTop = safeZone + (workingHeight - safeHeight) / 2;
 
+      if (borderEnabled) {
+        const borderScale = SHAPE_SAFE_BORDER_SCALE[shapeType] ?? safeScale;
+        const borderWidth = safeWidth * borderScale;
+        const borderHeight = safeHeight * borderScale;
+        const outline = build2dOutlinePoints(shapeType, borderWidth, borderHeight);
+        if (outline.length) {
+          ctx.lineWidth = Math.max(10, borderWidth * 0.02);
+          ctx.strokeStyle = '#ffffff';
+          ctx.beginPath();
+          const centerX = safeLeft + safeWidth / 2;
+          const centerY = safeTop + safeHeight / 2;
+          const [firstX, firstY] = outline[0];
+          ctx.moveTo(centerX + firstX, centerY + firstY);
+          for (let i = 1; i < outline.length; i += 1) {
+            const [x, y] = outline[i];
+            ctx.lineTo(centerX + x, centerY + y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+
       const label = text.length ? text : 'Memorylife';
-      let fontSize = safeWidth * 0.22;
+      let fontSize = safeWidth * 0.22 * LABEL_SCALE_FACTOR;
       ctx.font = `600 ${fontSize}px 'Inter', sans-serif`;
       const maxLabelWidth = safeWidth * 0.9;
       while (ctx.measureText(label).width > maxLabelWidth && fontSize > 34) {
@@ -426,7 +485,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       const labelY = safeTop + fontSize * 0.8;
       ctx.fillText(label, canvas.width / 2, labelY);
 
-      const slugFontSize = Math.max(fontSize * 0.35, safeWidth * 0.07);
+      const slugFontSize = Math.max(fontSize * 0.35, safeWidth * 0.07) * LABEL_SCALE_FACTOR;
       ctx.font = `500 ${slugFontSize}px 'Inter', sans-serif`;
       ctx.fillStyle = '#d1d5db';
       const slugY = labelY + slugFontSize * 1.2;
@@ -434,7 +493,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       ctx.fillStyle = '#ffffff';
 
       const qrAvailableHeight = safeTop + safeHeight - slugY - slugFontSize * 0.8;
-      const qrSize = Math.min(safeWidth, Math.max(qrAvailableHeight, safeHeight * 0.4)) * 0.92;
+      const qrSize =
+        Math.min(safeWidth, Math.max(qrAvailableHeight, safeHeight * 0.4)) * 0.92 * LABEL_SCALE_FACTOR;
       const qrTopClamp = Math.max(slugY + slugFontSize * 0.6, safeTop);
       let qrTop = qrTopClamp;
       if (qrTop + qrSize > safeTop + safeHeight) {
@@ -582,14 +642,18 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     sideMaterial.metalnessMap = null;
     sideMaterial.side = THREE.DoubleSide;
 
+    const backMaterial = sideMaterial.clone();
+    backMaterial.side = THREE.BackSide;
+
     if (state.plaqueMesh.geometry.isExtrudeGeometry && state.plaqueMesh.geometry.groups.length) {
-      state.plaqueMesh.geometry.groups[0].materialIndex = 0;
-      for (let i = 1; i < state.plaqueMesh.geometry.groups.length; i += 1) {
-        state.plaqueMesh.geometry.groups[i].materialIndex = 1;
+      for (const group of state.plaqueMesh.geometry.groups) {
+        if (group.materialIndex === undefined || group.materialIndex === null) {
+          group.materialIndex = 1;
+        }
       }
     }
 
-    state.plaqueMesh.material = [materialInstance, sideMaterial];
+    state.plaqueMesh.material = [materialInstance, sideMaterial, backMaterial];
     capturePreview();
   }, [
     border,
