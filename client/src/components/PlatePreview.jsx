@@ -112,6 +112,40 @@ const assignMaterialGroups = (geometry) => {
   }
 };
 
+const remapFrontFaceUVs = (geometry) => {
+  const position = geometry.attributes?.position;
+  const normal = geometry.attributes?.normal;
+  const uv = geometry.attributes?.uv;
+  if (!position || !normal || !uv) {
+    return;
+  }
+
+  geometry.computeBoundingBox();
+  const bbox = geometry.boundingBox;
+  if (!bbox) {
+    return;
+  }
+
+  const widthRange = Math.max(1e-3, bbox.max.x - bbox.min.x);
+  const heightRange = Math.max(1e-3, bbox.max.y - bbox.min.y);
+
+  for (let i = 0; i < position.count; i += 1) {
+    const nz = normal.getZ(i);
+    if (Math.abs(nz) > 0.5) {
+      const x = position.getX(i);
+      const y = position.getY(i);
+      const u = (x - bbox.min.x) / widthRange;
+      const v = (y - bbox.min.y) / heightRange;
+      if (nz > 0) {
+        uv.setXY(i, u, v);
+      } else {
+        uv.setXY(i, 1 - u, v);
+      }
+    }
+  }
+  uv.needsUpdate = true;
+};
+
 const createGeometryForShape = (shapeType, size) => {
   const { width, height, depth } = size;
   const shape2d = buildShape2D(shapeType, width, height);
@@ -124,6 +158,7 @@ const createGeometryForShape = (shapeType, size) => {
   });
   geometry.center();
   assignMaterialGroups(geometry);
+  remapFrontFaceUVs(geometry);
   return geometry;
 };
 
@@ -460,8 +495,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     // --- НАЧАЛО ИСПРАВЛЕНИЯ МАСШТАБИРОВАНИЯ ---
     // Логика масштабирования UV для вписывания квадратной текстуры (1024x1024)
     // в лицевую панель с размерами dimensions.width x dimensions.height
-    const { width, height } = dimensions;
-    const aspect = height ? width / height : 1;
+  const { width, height } = dimensions;
+  const aspect = height ? width / height : 1;
 
     // Текстура должна быть привязана к краям, а не повторяться
     engravingTexture.wrapS = THREE.ClampToEdgeWrapping;
