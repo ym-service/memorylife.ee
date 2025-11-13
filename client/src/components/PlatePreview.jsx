@@ -528,20 +528,16 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       ctx.fillText(label, canvas.width / 2, labelY);
 
       const slugFontSize = Math.max(fontSize * 0.35, safeWidth * 0.07) * LABEL_SCALE_FACTOR;
-      ctx.font = `500 ${slugFontSize}px 'Inter', sans-serif`;
-      ctx.fillStyle = '#d1d5db';
-      const slugY = labelY + slugFontSize * 1.2;
-      ctx.fillText(slugLabel, canvas.width / 2, slugY);
-      ctx.fillStyle = '#ffffff';
-
-      const qrAvailableHeight = safeTop + safeHeight - slugY - slugFontSize * 0.8;
-      const qrSize =
-        Math.min(safeWidth, Math.max(qrAvailableHeight, safeHeight * 0.4)) * 0.92 * LABEL_SCALE_FACTOR;
       const spacingOffset = safeHeight * 0.05;
-      const qrTopClamp = Math.max(slugY + slugFontSize * 0.6 + spacingOffset, safeTop);
-      let qrTop = qrTopClamp;
-      if (qrTop + qrSize > safeTop + safeHeight) {
-        qrTop = safeTop + safeHeight - qrSize;
+
+      const qrTopMin = Math.max(labelY + fontSize * 0.4 + spacingOffset, safeTop);
+      const qrBottomLimit = safeTop + safeHeight - slugFontSize * 1.8;
+      const qrAvailableHeight = Math.max(qrBottomLimit - qrTopMin, safeHeight * 0.3);
+      let qrSize =
+        Math.min(safeWidth, qrAvailableHeight) * 0.92 * LABEL_SCALE_FACTOR;
+      let qrTop = qrTopMin;
+      if (qrTop + qrSize > qrBottomLimit) {
+        qrTop = Math.max(safeTop, qrBottomLimit - qrSize);
       }
       const qrLeft = canvas.width / 2 - qrSize / 2;
       const qrCanvas = document.createElement('canvas');
@@ -559,6 +555,12 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         console.error('QR generation failed', err);
       }
       ctx.drawImage(qrCanvas, qrLeft, qrTop, qrSize, qrSize);
+
+      ctx.font = `500 ${slugFontSize}px 'Inter', sans-serif`;
+      ctx.fillStyle = '#d1d5db';
+      const slugY = qrTop + qrSize + slugFontSize * 1.1;
+      ctx.fillText(slugLabel, canvas.width / 2, Math.min(slugY, safeTop + safeHeight - slugFontSize * 0.3));
+      ctx.fillStyle = '#ffffff';
       return canvas;
     },
     []
