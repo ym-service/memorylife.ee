@@ -465,11 +465,13 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
       if (borderEnabled) {
         const physOffsetMm = 2;
-        const offsetRatioX = Math.min(0.2, physOffsetMm / Math.max(1, plateWidth * 10));
-        const offsetRatioY = Math.min(0.2, physOffsetMm / Math.max(1, plateHeight * 10));
+        const plateWidthMm = plateWidth * 10;
+        const plateHeightMm = plateHeight * 10;
+        const shrinkRatioX = Math.max(0.1, 1 - (physOffsetMm * 2) / Math.max(plateWidthMm, physOffsetMm * 4));
+        const shrinkRatioY = Math.max(0.1, 1 - (physOffsetMm * 2) / Math.max(plateHeightMm, physOffsetMm * 4));
         const borderScale = SHAPE_SAFE_BORDER_SCALE[shapeType] ?? safeScale;
-        const borderWidth = safeWidth * borderScale * (1 - offsetRatioX * 2);
-        const borderHeight = safeHeight * borderScale * (1 - offsetRatioY * 2);
+        const borderWidth = safeWidth * borderScale * shrinkRatioX;
+        const borderHeight = safeHeight * borderScale * shrinkRatioY;
         const outline = build2dOutlinePoints(shapeType, borderWidth, borderHeight);
         if (outline.length) {
           ctx.lineWidth = Math.max(10, borderWidth * 0.02);
