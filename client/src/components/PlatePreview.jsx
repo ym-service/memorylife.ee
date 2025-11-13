@@ -79,6 +79,8 @@ const createGeometryForShape = (shapeType, size) => {
     depth,
     bevelEnabled: false,
     steps: 1,
+    material: 0,
+    extrudeMaterial: 1,
   });
   geometry.center();
   return geometry;
@@ -447,33 +449,13 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
     disposeMaterial(state.plaqueMesh.material);
 
-    if (material === 'copper' || material === 'steel') {
-      const baseMaterial = materialInstance.clone();
-      baseMaterial.map = null;
-      baseMaterial.bumpMap = null;
-      baseMaterial.roughnessMap = null;
-      baseMaterial.metalnessMap = null;
-      state.plaqueMesh.material = [
-        baseMaterial.clone(),
-        baseMaterial.clone(),
-        baseMaterial.clone(),
-        baseMaterial.clone(),
-        materialInstance,
-        baseMaterial.clone(),
-      ];
-    } else {
-      const baseMaterial = materialInstance.clone();
-      baseMaterial.map = null;
-      baseMaterial.bumpMap = null;
-      state.plaqueMesh.material = [
-        baseMaterial.clone(),
-        baseMaterial.clone(),
-        baseMaterial.clone(),
-        baseMaterial.clone(),
-        materialInstance,
-        baseMaterial.clone(),
-      ];
-    }
+    const sideMaterial = materialInstance.clone();
+    sideMaterial.map = null;
+    sideMaterial.bumpMap = null;
+    sideMaterial.roughnessMap = material === 'matte' ? sideMaterial.roughnessMap : null;
+    sideMaterial.metalnessMap = null;
+
+    state.plaqueMesh.material = [materialInstance, sideMaterial];
     capturePreview();
   }, [border, capturePreview, engravingSlug, engravingText, engravingUrl, generateEngravingCanvas, material]);
 
