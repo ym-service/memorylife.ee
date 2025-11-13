@@ -455,6 +455,13 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     sideMaterial.roughnessMap = material === 'matte' ? sideMaterial.roughnessMap : null;
     sideMaterial.metalnessMap = null;
 
+    if (state.plaqueMesh.geometry.isExtrudeGeometry && state.plaqueMesh.geometry.groups.length) {
+      state.plaqueMesh.geometry.groups[0].materialIndex = 0;
+      for (let i = 1; i < state.plaqueMesh.geometry.groups.length; i += 1) {
+        state.plaqueMesh.geometry.groups[i].materialIndex = 1;
+      }
+    }
+
     state.plaqueMesh.material = [materialInstance, sideMaterial];
     capturePreview();
   }, [border, capturePreview, engravingSlug, engravingText, engravingUrl, generateEngravingCanvas, material]);
