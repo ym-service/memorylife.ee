@@ -13,9 +13,10 @@ const MATERIALS = [
 ];
 
 const SHAPE_OPTIONS = [
-  { id: 'ellipse', label: 'Элипсообразная' },
-  { id: 'star5', label: 'Звезда 5-конечная' },
-  { id: 'star4', label: '4-конечная звезда Давида' },
+  { id: 'rectangle', label: 'Rectangle' },
+  { id: 'ellipse', label: 'Ellipse' },
+  { id: 'star5', label: 'Five-point star' },
+  { id: 'star4', label: 'Star of David' },
 ];
 
 const defaultDimensions = { width: 10, height: 10, depth: 0.2 };
@@ -48,6 +49,15 @@ const buildStarShape = (points, width, height, innerScale = 0.45) => {
 
 const buildShape2D = (shapeType, width, height) => {
   switch (shapeType) {
+    case 'rectangle': {
+      const rect = new THREE.Shape();
+      rect.moveTo(-width / 2, -height / 2);
+      rect.lineTo(width / 2, -height / 2);
+      rect.lineTo(width / 2, height / 2);
+      rect.lineTo(-width / 2, height / 2);
+      rect.closePath();
+      return rect;
+    }
     case 'ellipse': {
       const shape = new THREE.Shape();
       shape.absellipse(0, 0, width / 2, height / 2, 0, Math.PI * 2, false, 0);
@@ -57,15 +67,8 @@ const buildShape2D = (shapeType, width, height) => {
       return buildStarShape(5, width, height);
     case 'star4':
       return buildStarShape(4, width, height, 0.5);
-    default: {
-      const rect = new THREE.Shape();
-      rect.moveTo(-width / 2, -height / 2);
-      rect.lineTo(width / 2, -height / 2);
-      rect.lineTo(width / 2, height / 2);
-      rect.lineTo(-width / 2, height / 2);
-      rect.closePath();
-      return rect;
-    }
+    default:
+      return buildShape2D('rectangle', width, height);
   }
 };
 
@@ -592,29 +595,24 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
             </div>
           </div>
 
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-400">Форма</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <label
+            className={`text-xs font-semibold uppercase tracking-[0.2em] ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Plate shape
+            <select
+              value={shape}
+              onChange={(event) => setShape(event.target.value)}
+              className={`${controlInputClasses} cursor-pointer`}
+            >
               {SHAPE_OPTIONS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setShape(item.id)}
-                  className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
-                    shape === item.id
-                      ? isDark
-                        ? 'border-brand-400 bg-white/10 text-white'
-                        : 'border-brand-500 bg-brand-50 text-brand-700'
-                      : isDark
-                      ? 'border-white/10 bg-white/5 text-slate-300 hover:border-white/30'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-brand-200'
-                  }`}
-                >
+                <option key={item.id} value={item.id}>
                   {item.label}
-                </button>
+                </option>
               ))}
-            </div>
-          </div>
+            </select>
+          </label>
 
           <div className="grid gap-3 sm:grid-cols-2">
             {dimensionFields.map((field) => (

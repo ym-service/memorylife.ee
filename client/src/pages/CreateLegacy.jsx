@@ -20,7 +20,7 @@ const DEFAULT_PLATE_OPTIONS = {
   widthCm: 10,
   heightCm: 10,
   thicknessMm: 2,
-  shape: 'ellipse',
+  shape: 'rectangle',
 };
 
 const initialFormState = {
