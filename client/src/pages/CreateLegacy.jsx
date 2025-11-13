@@ -142,11 +142,11 @@ const CreateLegacy = () => {
               Memorylife
             </p>
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-              Memorylife - a page for your story
+              Legacy. Reimagined.
             </h1>
             <p className={`text-lg ${textMuted}`}>
-              Build a private tribute with text, photos, and a shareable QR plaque. Everything works
-              locally on your Windows device.
+              More than a name. A story. This plaque unlocks a beautiful personal page for their photos,
+              videos, and stories. Preserved forever.
             </p>
           </div>
           <ThemeToggle />
