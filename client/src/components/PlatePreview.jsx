@@ -37,7 +37,7 @@ const LABEL_SCALE_FACTOR = 0.75;
 
 const defaultDimensions = { width: 10, height: 10, depth: 0.2 };
 
-const buildStarShape = (points, width, height, innerScale = 0.45) => {
+const buildStarShape = (points, width, height, innerScale = 0.45, rotation = Math.PI / 2) => {
   const shape = new THREE.Shape();
   const outerRadiusX = width / 2;
   const outerRadiusY = height / 2;
@@ -47,7 +47,7 @@ const buildStarShape = (points, width, height, innerScale = 0.45) => {
   const step = (Math.PI * 2) / totalPoints;
 
   for (let i = 0; i < totalPoints; i += 1) {
-    const angle = i * step - Math.PI / 2;
+    const angle = i * step - rotation;
     const useOuter = i % 2 === 0;
     const radiusX = useOuter ? outerRadiusX : innerRadiusX;
     const radiusY = useOuter ? outerRadiusY : innerRadiusY;
@@ -80,7 +80,7 @@ const buildShape2D = (shapeType, width, height) => {
       return shape;
     }
     case 'star5':
-      return buildStarShape(5, width, height);
+      return buildStarShape(5, width, height, 0.45, (3 * Math.PI) / 2);
     case 'star4':
       return buildStarShape(4, width, height, 0.5);
     default:
@@ -207,7 +207,7 @@ const build2dOutlinePoints = (shapeType, width, height) => {
       return pts;
     }
     case 'star5':
-      return buildStarShape(5, width, height).getPoints(32).map((p) => [p.x, p.y]);
+      return buildStarShape(5, width, height, 0.45, (3 * Math.PI) / 2).getPoints(32).map((p) => [p.x, p.y]);
     case 'star4':
       return buildStarShape(4, width, height, 0.5).getPoints(32).map((p) => [p.x, p.y]);
     default:
