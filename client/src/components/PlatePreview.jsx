@@ -453,6 +453,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
       const plateWidth = Math.max(0.1, plateWidthCm || 10);
       const plateHeight = Math.max(0.1, plateHeightCm || 10);
+      const plateWidthMm = plateWidth * 10;
+      const plateHeightMm = plateHeight * 10;
 
       const safeZone = TEXTURE_RESOLUTION * 0.08;
       const workingWidth = TEXTURE_RESOLUTION - safeZone * 2;
@@ -463,27 +465,43 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       const safeLeft = safeZone + (workingWidth - safeWidth) / 2;
       const safeTop = safeZone + (workingHeight - safeHeight) / 2;
 
+      const aspect = plateHeight ? plateWidth / plateHeight : 1;
+      const repeatX = aspect > 1 ? 1 / aspect : 1;
+      const repeatY = aspect > 1 ? 1 : aspect;
+      const offsetX = aspect > 1 ? (1 - 1 / aspect) / 2 : 0;
+      const offsetY = aspect > 1 ? 0 : (1 - aspect) / 2;
+      const texWidth = repeatX * TEXTURE_RESOLUTION;
+      const texHeight = repeatY * TEXTURE_RESOLUTION;
+
+      const mapPlateToCanvas = (x, y) => {
+        const normX = plateWidth > 0 ? x / plateWidth + 0.5 : 0.5;
+        const normY = plateHeight > 0 ? y / plateHeight + 0.5 : 0.5;
+        return [
+          offsetX * TEXTURE_RESOLUTION + normX * texWidth,
+          offsetY * TEXTURE_RESOLUTION + normY * texHeight,
+        ];
+      };
+
       if (borderEnabled) {
-        const physOffsetMm = 2;
-        const plateWidthMm = plateWidth * 10;
-        const plateHeightMm = plateHeight * 10;
-        const shrinkRatioX = Math.max(0.1, 1 - (physOffsetMm * 2) / Math.max(plateWidthMm, physOffsetMm * 4));
-        const shrinkRatioY = Math.max(0.1, 1 - (physOffsetMm * 2) / Math.max(plateHeightMm, physOffsetMm * 4));
-        const borderScale = SHAPE_SAFE_BORDER_SCALE[shapeType] ?? safeScale;
-        const borderWidth = safeWidth * borderScale * shrinkRatioX;
-        const borderHeight = safeHeight * borderScale * shrinkRatioY;
-        const outline = build2dOutlinePoints(shapeType, borderWidth, borderHeight);
+        const insetMm = 1.5;
+        const insetCm = insetMm / 10;
+        const insetWidth = Math.max(plateWidth - insetCm * 2, plateWidth * 0.1);
+        const insetHeight = Math.max(plateHeight - insetCm * 2, plateHeight * 0.1);
+        const outline = build2dOutlinePoints(shapeType, insetWidth, insetHeight);
         if (outline.length) {
-          ctx.lineWidth = Math.max(10, borderWidth * 0.02);
+          const lineWidthMm = 2;
+          const lineWidthPxX = (lineWidthMm / plateWidthMm) * texWidth;
+          const lineWidthPxY = (lineWidthMm / plateHeightMm) * texHeight;
+          ctx.lineWidth = Math.max(2, (lineWidthPxX + lineWidthPxY) / 2);
           ctx.strokeStyle = '#ffffff';
           ctx.beginPath();
-          const centerX = safeLeft + safeWidth / 2;
-          const centerY = safeTop + safeHeight / 2;
           const [firstX, firstY] = outline[0];
-          ctx.moveTo(centerX + firstX, centerY + firstY);
+          const [startX, startY] = mapPlateToCanvas(firstX, firstY);
+          ctx.moveTo(startX, startY);
           for (let i = 1; i < outline.length; i += 1) {
             const [x, y] = outline[i];
-            ctx.lineTo(centerX + x, centerY + y);
+            const [px, py] = mapPlateToCanvas(x, y);
+            ctx.lineTo(px, py);
           }
           ctx.closePath();
           ctx.stroke();
