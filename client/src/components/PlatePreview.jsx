@@ -429,7 +429,15 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   };
 
   const generateEngravingCanvas = useCallback(
-    async ({ text, url: qrUrl, border: borderEnabled, slug: slugLabel, shape: shapeType }) => {
+    async ({
+      text,
+      url: qrUrl,
+      border: borderEnabled,
+      slug: slugLabel,
+      shape: shapeType,
+      plateWidthCm,
+      plateHeightCm,
+    }) => {
       if (!engravingCanvasRef.current) {
         engravingCanvasRef.current = document.createElement('canvas');
       }
@@ -443,6 +451,9 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
+      const plateWidth = Math.max(0.1, plateWidthCm || 10);
+      const plateHeight = Math.max(0.1, plateHeightCm || 10);
+
       const safeZone = TEXTURE_RESOLUTION * 0.08;
       const workingWidth = TEXTURE_RESOLUTION - safeZone * 2;
       const workingHeight = TEXTURE_RESOLUTION - safeZone * 2;
@@ -453,9 +464,12 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       const safeTop = safeZone + (workingHeight - safeHeight) / 2;
 
       if (borderEnabled) {
+        const physOffsetMm = 2;
+        const offsetRatioX = Math.min(0.2, physOffsetMm / Math.max(1, plateWidth * 10));
+        const offsetRatioY = Math.min(0.2, physOffsetMm / Math.max(1, plateHeight * 10));
         const borderScale = SHAPE_SAFE_BORDER_SCALE[shapeType] ?? safeScale;
-        const borderWidth = safeWidth * borderScale;
-        const borderHeight = safeHeight * borderScale;
+        const borderWidth = safeWidth * borderScale * (1 - offsetRatioX * 2);
+        const borderHeight = safeHeight * borderScale * (1 - offsetRatioY * 2);
         const outline = build2dOutlinePoints(shapeType, borderWidth, borderHeight);
         if (outline.length) {
           ctx.lineWidth = Math.max(10, borderWidth * 0.02);
@@ -495,7 +509,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       const qrAvailableHeight = safeTop + safeHeight - slugY - slugFontSize * 0.8;
       const qrSize =
         Math.min(safeWidth, Math.max(qrAvailableHeight, safeHeight * 0.4)) * 0.92 * LABEL_SCALE_FACTOR;
-      const qrTopClamp = Math.max(slugY + slugFontSize * 0.6, safeTop);
+      const spacingOffset = safeHeight * 0.05;
+      const qrTopClamp = Math.max(slugY + slugFontSize * 0.6 + spacingOffset, safeTop);
       let qrTop = qrTopClamp;
       if (qrTop + qrSize > safeTop + safeHeight) {
         qrTop = safeTop + safeHeight - qrSize;
@@ -554,6 +569,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         border,
         slug: engravingSlug,
         shape,
+        plateWidthCm: dimensions.width,
+        plateHeightCm: dimensions.height,
       });
     } catch (err) {
       console.error('Failed to build engraving map', err);
