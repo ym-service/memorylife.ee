@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import QRCode from 'qrcode';
 import { useTheme } from '../context/ThemeContext.jsx';
 
@@ -13,7 +12,74 @@ const MATERIALS = [
   { id: 'matte', label: 'Matte steel' },
 ];
 
-const defaultDimensions = { width: 10, height: 10, depth: 0.2, radius: 0.2 };
+const SHAPE_OPTIONS = [
+  { id: 'ellipse', label: 'Элипсообразная' },
+  { id: 'star5', label: 'Звезда 5-конечная' },
+  { id: 'star4', label: '4-конечная звезда Давида' },
+];
+
+const defaultDimensions = { width: 10, height: 10, depth: 0.2 };
+
+const buildStarShape = (points, width, height, innerScale = 0.45) => {
+  const shape = new THREE.Shape();
+  const outerRadiusX = width / 2;
+  const outerRadiusY = height / 2;
+  const innerRadiusX = outerRadiusX * innerScale;
+  const innerRadiusY = outerRadiusY * innerScale;
+  const totalPoints = points * 2;
+  const step = (Math.PI * 2) / totalPoints;
+
+  for (let i = 0; i < totalPoints; i += 1) {
+    const angle = i * step - Math.PI / 2;
+    const useOuter = i % 2 === 0;
+    const radiusX = useOuter ? outerRadiusX : innerRadiusX;
+    const radiusY = useOuter ? outerRadiusY : innerRadiusY;
+    const x = radiusX * Math.cos(angle);
+    const y = radiusY * Math.sin(angle);
+    if (i === 0) {
+      shape.moveTo(x, y);
+    } else {
+      shape.lineTo(x, y);
+    }
+  }
+  shape.closePath();
+  return shape;
+};
+
+const buildShape2D = (shapeType, width, height) => {
+  switch (shapeType) {
+    case 'ellipse': {
+      const shape = new THREE.Shape();
+      shape.absellipse(0, 0, width / 2, height / 2, 0, Math.PI * 2, false, 0);
+      return shape;
+    }
+    case 'star5':
+      return buildStarShape(5, width, height);
+    case 'star4':
+      return buildStarShape(4, width, height, 0.5);
+    default: {
+      const rect = new THREE.Shape();
+      rect.moveTo(-width / 2, -height / 2);
+      rect.lineTo(width / 2, -height / 2);
+      rect.lineTo(width / 2, height / 2);
+      rect.lineTo(-width / 2, height / 2);
+      rect.closePath();
+      return rect;
+    }
+  }
+};
+
+const createGeometryForShape = (shapeType, size) => {
+  const { width, height, depth } = size;
+  const shape2d = buildShape2D(shapeType, width, height);
+  const geometry = new THREE.ExtrudeGeometry(shape2d, {
+    depth,
+    bevelEnabled: false,
+    steps: 1,
+  });
+  geometry.center();
+  return geometry;
+};
 
 const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   const canvasRef = useRef(null);
@@ -24,6 +90,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   const [material, setMaterial] = useState('steel');
   const [border, setBorder] = useState(false);
   const [dimensions, setDimensions] = useState(defaultDimensions);
+  const [shape, setShape] = useState(SHAPE_OPTIONS[0].id);
 
   const engravingText = (title || 'Memorylife').trim();
   const engravingUrl = (url || 'https://memorylife.local/legacy/sample').trim();
@@ -45,15 +112,6 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         label: 'Thickness (mm)',
         min: 1,
         max: 20,
-        step: 0.5,
-        toDisplay: (value) => parseFloat((value * 10).toFixed(2)),
-        toState: (value) => value / 10,
-      },
-      {
-        id: 'radius',
-        label: 'Corner radius (mm)',
-        min: 1,
-        max: 10,
         step: 0.5,
         toDisplay: (value) => parseFloat((value * 10).toFixed(2)),
         toState: (value) => value / 10,
@@ -109,13 +167,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     directional.position.set(1, 1.2, 1);
     scene.add(directional);
 
-    const geometry = new RoundedBoxGeometry(
-      defaultDimensions.width,
-      defaultDimensions.height,
-      defaultDimensions.depth,
-      8,
-      defaultDimensions.radius
-    );
+    const geometry = createGeometryForShape(SHAPE_OPTIONS[0].id, defaultDimensions);
     const placeholderMaterial = new THREE.MeshStandardMaterial({ color: 0x5a6072 });
     const plaqueMesh = new THREE.Mesh(geometry, placeholderMaterial);
     scene.add(plaqueMesh);
@@ -302,13 +354,13 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   );
 
   const updateGeometry = useCallback(
-    (size) => {
+    (size, selectedShape) => {
       const state = stateRef.current;
       if (!state?.plaqueMesh) {
         return;
       }
       state.plaqueMesh.geometry.dispose();
-      state.plaqueMesh.geometry = new RoundedBoxGeometry(size.width, size.height, size.depth, 8, size.radius);
+      state.plaqueMesh.geometry = createGeometryForShape(selectedShape, size);
       const cameraDistance = Math.max(size.width, size.height) * 1.6;
       state.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
       state.controls.target.set(0, 0, 0);
@@ -428,8 +480,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   }, [initializeScene]);
 
   useEffect(() => {
-    updateGeometry(dimensions);
-  }, [dimensions, updateGeometry]);
+    updateGeometry(dimensions, shape);
+  }, [dimensions, shape, updateGeometry]);
 
   useEffect(() => {
     updateMaterial();
@@ -447,18 +499,18 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     onOptionsChange({
       material,
       border,
+      shape,
       widthCm: parseFloat(dimensions.width.toFixed(2)),
       heightCm: parseFloat(dimensions.height.toFixed(2)),
       thicknessMm: parseFloat((dimensions.depth * 10).toFixed(2)),
-      cornerRadiusMm: parseFloat((dimensions.radius * 10).toFixed(2)),
     });
   }, [
     border,
     dimensions.depth,
     dimensions.height,
-    dimensions.radius,
     dimensions.width,
     material,
+    shape,
     onOptionsChange,
   ]);
 
@@ -526,6 +578,30 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
                   onClick={() => setMaterial(item.id)}
                   className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
                     material === item.id
+                      ? isDark
+                        ? 'border-brand-400 bg-white/10 text-white'
+                        : 'border-brand-500 bg-brand-50 text-brand-700'
+                      : isDark
+                      ? 'border-white/10 bg-white/5 text-slate-300 hover:border-white/30'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-brand-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-400">Форма</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {SHAPE_OPTIONS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setShape(item.id)}
+                  className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
+                    shape === item.id
                       ? isDark
                         ? 'border-brand-400 bg-white/10 text-white'
                         : 'border-brand-500 bg-brand-50 text-brand-700'

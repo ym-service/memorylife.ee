@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
 
+const SHAPE_LABELS = {
+  ellipse: 'Элипсообразная',
+  star5: 'Звезда 5-конечная',
+  star4: '4-конечная звезда Давида',
+};
+
 const OrderModal = ({
   open,
   onClose,
@@ -57,14 +63,15 @@ const OrderModal = ({
     widthCm: asNumber(plateOptions.widthCm, 10),
     heightCm: asNumber(plateOptions.heightCm, 10),
     thicknessMm: asNumber(plateOptions.thicknessMm, 2),
-    cornerRadiusMm: asNumber(plateOptions.cornerRadiusMm, 2),
+    shape: plateOptions.shape || 'ellipse',
   };
 
+  const shapeLabel = SHAPE_LABELS[normalizedPlate.shape] || normalizedPlate.shape;
   const plateSummary = [
     `Material: ${normalizedPlate.material}`,
     `Dimensions: ${normalizedPlate.widthCm}cm x ${normalizedPlate.heightCm}cm`,
     `Thickness: ${normalizedPlate.thicknessMm}mm`,
-    `Corner radius: ${normalizedPlate.cornerRadiusMm}mm`,
+    `Shape: ${shapeLabel}`,
     `Engraved border: ${normalizedPlate.border ? 'Yes' : 'No'}`,
   ].join('\n');
 
