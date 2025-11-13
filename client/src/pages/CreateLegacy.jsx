@@ -142,7 +142,7 @@ const CreateLegacy = () => {
               Memorylife
             </p>
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-              Legacy. Reimagined.
+              Legacy Reimagined
             </h1>
             <p className={`text-lg ${textMuted}`}>
               More than a name. A story. This plaque unlocks a beautiful personal page for their photos,
