@@ -90,12 +90,19 @@ const buildShape2D = (shapeType, width, height) => {
 
 const assignMaterialGroups = (geometry) => {
   const { index, attributes } = geometry;
-  const normals = attributes?.normal;
-  if (!index || !normals) {
+  const position = attributes?.position;
+  if (!index || !position) {
     geometry.clearGroups();
     geometry.addGroup(0, attributes?.position?.count || 0, 0);
+    geometry.groupsNeedUpdate = true;
     return;
   }
+
+  geometry.computeBoundingBox();
+  const bbox = geometry.boundingBox;
+  const frontZ = bbox?.max?.z ?? 0.1;
+  const backZ = bbox?.min?.z ?? -0.1;
+  const epsilon = Math.max(1e-4, (frontZ - backZ) * 0.01);
 
   geometry.clearGroups();
   const faceCount = index.count / 3;
@@ -106,10 +113,10 @@ const assignMaterialGroups = (geometry) => {
     const a = index.getX(faceOffset);
     const b = index.getX(faceOffset + 1);
     const c = index.getX(faceOffset + 2);
-    const nz = (normals.getZ(a) + normals.getZ(b) + normals.getZ(c)) / 3;
-    if (nz > 0.4) return 0;
-    if (nz < -0.4) return 2;
-    return 1;
+    const avgZ = (position.getZ(a) + position.getZ(b) + position.getZ(c)) / 3;
+    if (frontZ - avgZ < epsilon) return 0; // front cap
+    if (avgZ - backZ < epsilon) return 2; // back cap
+    return 1; // side wall
   };
 
   for (let face = 0; face < faceCount; face += 1) {
@@ -128,6 +135,7 @@ const assignMaterialGroups = (geometry) => {
       geometry.addGroup(segmentStart, index.count - segmentStart, currentMaterial);
     }
   }
+  geometry.groupsNeedUpdate = true;
 };
 
 const remapFrontFaceUVs = (geometry) => {
