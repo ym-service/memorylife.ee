@@ -457,6 +457,27 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     engravingTexture.magFilter = THREE.NearestFilter;
     engravingTexture.minFilter = THREE.NearestFilter;
 
+    // --- НАЧАЛО ИСПРАВЛЕНИЯ МАСШТАБИРОВАНИЯ ---
+    // Логика масштабирования UV для вписывания квадратной текстуры (1024x1024)
+    // в лицевую панель с размерами dimensions.width x dimensions.height
+    const { width, height } = dimensions;
+    const aspect = height ? width / height : 1;
+
+    // Текстура должна быть привязана к краям, а не повторяться
+    engravingTexture.wrapS = THREE.ClampToEdgeWrapping;
+    engravingTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+    if (aspect > 1) {
+      // Табличка шире, чем выше
+      engravingTexture.repeat.set(1 / aspect, 1);
+      engravingTexture.offset.set((1 - 1 / aspect) / 2, 0);
+    } else {
+      // Табличка выше (или квадрат)
+      engravingTexture.repeat.set(1, aspect);
+      engravingTexture.offset.set(0, (1 - aspect) / 2);
+    }
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ МАСШТАБИРОВАНИЯ ---
+
     if (state.engravingTexture) {
       state.engravingTexture.dispose();
     }
@@ -519,7 +540,17 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
     state.plaqueMesh.material = [materialInstance, sideMaterial];
     capturePreview();
-  }, [border, capturePreview, engravingSlug, engravingText, engravingUrl, generateEngravingCanvas, material]);
+  }, [
+    border,
+    capturePreview,
+    dimensions.height,
+    dimensions.width,
+    engravingSlug,
+    engravingText,
+    engravingUrl,
+    generateEngravingCanvas,
+    material,
+  ]);
 
   useEffect(() => {
     const cleanup = initializeScene();
