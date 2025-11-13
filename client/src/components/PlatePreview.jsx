@@ -72,6 +72,46 @@ const buildShape2D = (shapeType, width, height) => {
   }
 };
 
+const assignMaterialGroups = (geometry) => {
+  const { index, attributes } = geometry;
+  const normals = attributes?.normal;
+  if (!index || !normals) {
+    geometry.clearGroups();
+    geometry.addGroup(0, attributes?.position?.count || 0, 0);
+    return;
+  }
+
+  geometry.clearGroups();
+  const faceCount = index.count / 3;
+  let currentMaterial = null;
+  let segmentStart = 0;
+
+  const materialForFace = (faceOffset) => {
+    const a = index.getX(faceOffset);
+    const b = index.getX(faceOffset + 1);
+    const c = index.getX(faceOffset + 2);
+    const nz = (normals.getZ(a) + normals.getZ(b) + normals.getZ(c)) / 3;
+    return nz > 0.05 ? 0 : 1;
+  };
+
+  for (let face = 0; face < faceCount; face += 1) {
+    const offset = face * 3;
+    const materialIndex = materialForFace(offset);
+    if (currentMaterial === null) {
+      currentMaterial = materialIndex;
+      segmentStart = offset;
+    } else if (materialIndex !== currentMaterial) {
+      geometry.addGroup(segmentStart, offset - segmentStart, currentMaterial);
+      segmentStart = offset;
+      currentMaterial = materialIndex;
+    }
+
+    if (face === faceCount - 1) {
+      geometry.addGroup(segmentStart, index.count - segmentStart, currentMaterial);
+    }
+  }
+};
+
 const createGeometryForShape = (shapeType, size) => {
   const { width, height, depth } = size;
   const shape2d = buildShape2D(shapeType, width, height);
@@ -83,6 +123,7 @@ const createGeometryForShape = (shapeType, size) => {
     extrudeMaterial: 1,
   });
   geometry.center();
+  assignMaterialGroups(geometry);
   return geometry;
 };
 
@@ -323,21 +364,33 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, canvas.width - ctx.lineWidth * 2, canvas.height - ctx.lineWidth * 2);
       }
 
+      const safeZone = TEXTURE_RESOLUTION * 0.08;
+      const workingWidth = TEXTURE_RESOLUTION - safeZone * 2;
+      const workingHeight = TEXTURE_RESOLUTION - safeZone * 2;
+
       const label = text.length ? text : 'Memorylife';
-      let fontSize = 140;
+      let fontSize = workingWidth * 0.22;
       ctx.font = `600 ${fontSize}px 'Inter', sans-serif`;
-      while (ctx.measureText(label).width > canvas.width * 0.8 && fontSize > 30) {
-        fontSize -= 6;
+      const maxLabelWidth = workingWidth * 0.9;
+      while (ctx.measureText(label).width > maxLabelWidth && fontSize > 34) {
+        fontSize -= 4;
         ctx.font = `600 ${fontSize}px 'Inter', sans-serif`;
       }
-      ctx.fillText(label, canvas.width / 2, canvas.height * 0.18);
+      const labelY = safeZone + fontSize * 0.6;
+      ctx.fillText(label, canvas.width / 2, labelY);
 
-      ctx.font = `500 ${Math.max(36, fontSize * 0.4)}px 'Inter', sans-serif`;
+      const slugFontSize = Math.max(fontSize * 0.35, workingWidth * 0.07);
+      ctx.font = `500 ${slugFontSize}px 'Inter', sans-serif`;
       ctx.fillStyle = '#d1d5db';
-      ctx.fillText(slugLabel, canvas.width / 2, canvas.height * 0.28);
+      const slugY = labelY + slugFontSize * 1.3;
+      ctx.fillText(slugLabel, canvas.width / 2, slugY);
       ctx.fillStyle = '#ffffff';
 
-      const qrSize = TEXTURE_RESOLUTION * 0.5;
+      const qrAvailableHeight = workingHeight - (slugY - safeZone) - slugFontSize * 1.6;
+      const qrSize = Math.min(workingWidth, Math.max(qrAvailableHeight, workingHeight * 0.4)) * 0.95;
+      const qrCenterY = slugY + slugFontSize * 1.2 + qrSize / 2;
+      const qrTop = Math.min(qrCenterY - qrSize / 2, canvas.height - safeZone - qrSize);
+      const qrLeft = (canvas.width - qrSize) / 2;
       const qrCanvas = document.createElement('canvas');
       try {
         await QRCode.toCanvas(qrCanvas, qrUrl || 'https://memorylife.local', {
@@ -352,7 +405,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       } catch (err) {
         console.error('QR generation failed', err);
       }
-      ctx.drawImage(qrCanvas, (canvas.width - qrSize) / 2, canvas.height * 0.38, qrSize, qrSize);
+      ctx.drawImage(qrCanvas, qrLeft, qrTop, qrSize, qrSize);
       return canvas;
     },
     []
@@ -446,6 +499,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         envMapIntensity: 0.3,
       });
     }
+    materialInstance.side = THREE.FrontSide;
 
     disposeMaterial(state.plaqueMesh.material);
 
@@ -454,6 +508,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     sideMaterial.bumpMap = null;
     sideMaterial.roughnessMap = material === 'matte' ? sideMaterial.roughnessMap : null;
     sideMaterial.metalnessMap = null;
+    sideMaterial.side = THREE.DoubleSide;
 
     if (state.plaqueMesh.geometry.isExtrudeGeometry && state.plaqueMesh.geometry.groups.length) {
       state.plaqueMesh.geometry.groups[0].materialIndex = 0;
