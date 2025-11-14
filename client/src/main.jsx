@@ -8,7 +8,7 @@ import { ThemeProvider } from './context/ThemeContext.jsx';
 ReactDOM.createRoot(document.getElementById('root')).render(
 <React.StrictMode>
   <ThemeProvider>
-    <BrowserRouter basename="/memorylife.ee/">
+    <BrowserRouter basename="/">
       <App />
     </BrowserRouter>
   </ThemeProvider>
