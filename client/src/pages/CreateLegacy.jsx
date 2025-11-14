@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import PlatePreview from '../components/PlatePreview.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
@@ -47,6 +47,8 @@ const CreateLegacy = () => {
   const [isOrderModalOpen, setOrderModalOpen] = useState(false);
   const [plateOptions, setPlateOptions] = useState(DEFAULT_PLATE_OPTIONS);
   const [previewImage, setPreviewImage] = useState('');
+  const [photoName, setPhotoName] = useState('');
+  const fileInputRef = useRef(null);
 
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -136,6 +138,24 @@ const CreateLegacy = () => {
 
   const textMuted = isDark ? 'text-[#d9b1a2]' : 'text-[#7b463c]';
 
+  const handlePhotoSelect = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setPhotoName('');
+      setFormData((prev) => ({ ...prev, image_url: '' }));
+      return;
+    }
+    setPhotoName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        image_url: typeof reader.result === 'string' ? reader.result : '',
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-12 pt-10 md:flex-row md:items-start md:justify-between md:pt-16">
       <section className="w-full space-y-6 md:w-1/2">
@@ -187,18 +207,27 @@ const CreateLegacy = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="image_url" className="text-sm font-semibold">
-              {t('form.photoLabel')}
-            </label>
-            <input
-              type="url"
-              id="image_url"
-              name="image_url"
-              value={formData.image_url}
-              onChange={handleChange}
-              placeholder="https://example.com/photo.jpg"
-              className={inputClasses}
-            />
+            <label className="text-sm font-semibold">{t('form.photoLabel')}</label>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                  isDark
+                    ? 'bg-[#341215] text-[#ffdbcc] border border-[#5a2a27] hover:border-[#ffb485]'
+                    : 'bg-[#ffe2cf] text-[#5c241f] border border-[#f4c8b2] hover:bg-[#ffd1b4]'
+                }`}
+              >
+                {photoName ? `${t('form.photoSelected')}: ${photoName}` : t('form.photoButton')}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
+            </div>
             <p className={`text-xs ${textMuted}`}>{t('form.photoHint')}</p>
           </div>
 
