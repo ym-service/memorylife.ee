@@ -1,11 +1,5 @@
 import { useEffect } from 'react';
-
-const SHAPE_LABELS = {
-  rectangle: 'Rectangle',
-  ellipse: 'Ellipse',
-  star5: 'Five-point star',
-  star4: 'Star of David',
-};
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const OrderModal = ({
   open,
@@ -19,6 +13,7 @@ const OrderModal = ({
   redirectUrl = 'https://ym-service.github.io/memorylife.ee',
   isDark,
 }) => {
+  const { t } = useLanguage();
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -42,11 +37,11 @@ const OrderModal = ({
 
   const inputClasses = `w-full rounded-2xl border px-4 py-3 text-base outline-none transition focus:ring-2 ${
     isDark
-      ? 'border-slate-700 bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:border-brand-400 focus:ring-brand-400/40'
-      : 'border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-100'
+      ? 'border-[#5a2b28] bg-[#2b1416] text-[#fee7d8] placeholder:text-[#b68478] focus:border-[#ffb07c] focus:ring-[#f9b386]/30'
+      : 'border-[#f0d5c7] bg-white text-[#5b2a23] placeholder:text-[#be8678] focus:border-[#f8945d] focus:ring-[#ffd5b3]/50'
   }`;
 
-  const mutedText = isDark ? 'text-slate-400' : 'text-slate-600';
+  const mutedText = isDark ? 'text-[#d8a999]' : 'text-[#804136]';
 
   const {
     slug = '',
@@ -67,7 +62,8 @@ const OrderModal = ({
     shape: plateOptions.shape || 'rectangle',
   };
 
-  const shapeLabel = SHAPE_LABELS[normalizedPlate.shape] || normalizedPlate.shape;
+  const shapeLabel =
+    t(`modal.shapes.${normalizedPlate.shape}`) || normalizedPlate.shape;
   const plateSummary = [
     `Material: ${normalizedPlate.material}`,
     `Dimensions: ${normalizedPlate.widthCm}cm x ${normalizedPlate.heightCm}cm`,
@@ -85,24 +81,27 @@ const OrderModal = ({
         role="dialog"
         aria-modal="true"
         className={`w-full max-w-lg rounded-3xl p-6 shadow-2xl ${
-          isDark ? 'border border-white/5 bg-slate-900' : 'bg-white'
+          isDark ? 'border border-[#4c2426]/70 bg-[#1b0b0e]' : 'bg-[#fff4ed] border border-[#f3cdb9]'
         }`}
       >
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-500">
-              Memorylife tab
+              {t('modal.badge')}
             </p>
-            <h3 className="mt-2 text-2xl font-semibold">Order a Memorylife plaque</h3>
+            <h3 className="mt-2 text-2xl font-semibold">{t('modal.title')}</h3>
             <p className={`mt-1 text-sm ${mutedText}`}>
-              This form sends your request directly to{' '}
-              <span className="font-semibold text-brand-400">{orderEmail}</span> through StaticForms.
+              {t('modal.intro').replace('{email}', orderEmail)}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/10 p-2 text-slate-400 transition hover:text-white"
+            className={`rounded-full border p-2 transition ${
+              isDark
+                ? 'border-[#f6c6a8]/30 text-[#fddfce] hover:border-[#ffad73] hover:text-white'
+                : 'border-[#f4cdb9] text-[#6c2b23] hover:text-[#a34a32]'
+            }`}
             aria-label="Close order form"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none">
@@ -145,7 +144,7 @@ const OrderModal = ({
 
           <div className="space-y-2">
             <label htmlFor="modal-name" className="text-sm font-medium">
-              Name
+              {t('modal.name')}
             </label>
             <input
               id="modal-name"
@@ -160,7 +159,7 @@ const OrderModal = ({
 
           <div className="space-y-2">
             <label htmlFor="modal-email" className="text-sm font-medium">
-              Email
+              {t('modal.email')}
             </label>
             <input
               type="email"
@@ -176,7 +175,7 @@ const OrderModal = ({
 
           <div className="space-y-2">
             <label htmlFor="modal-phone" className="text-sm font-medium">
-              Phone (optional)
+              {t('modal.phone')}
             </label>
             <input
               id="modal-phone"
@@ -190,14 +189,14 @@ const OrderModal = ({
 
           <div className="space-y-2">
             <label htmlFor="modal-message" className="text-sm font-medium">
-              Message
+              {t('modal.message')}
             </label>
             <textarea
               id="modal-message"
               name="message"
               value={orderForm.message}
               onChange={onChange}
-              placeholder="Tell us how many plaques you need, preferred material, etc."
+              placeholder={t('modal.messagePlaceholder')}
               rows="4"
               className={`${inputClasses} min-h-[140px]`}
               required
@@ -206,7 +205,7 @@ const OrderModal = ({
 
           <div className="space-y-2">
             <label htmlFor="modal-attachment" className="text-sm font-medium">
-              Attach artwork or reference (optional)
+              {t('modal.attachmentLabel')}
             </label>
             <input
               type="file"
@@ -215,31 +214,28 @@ const OrderModal = ({
               accept=".png,.jpg,.jpeg,.pdf"
               className={inputClasses}
             />
-            <p className={`text-xs ${mutedText}`}>
-              Upload logos, sketches, or measurements to help us manufacture the plaque.
-            </p>
+            <p className={`text-xs ${mutedText}`}>{t('modal.attachmentHint')}</p>
           </div>
 
           <p className={`text-xs ${mutedText}`}>
-            After submission StaticForms will redirect you to {redirectUrl}. Double-check your inbox
-            (and spam folder) for the StaticForms confirmation email the first time you submit.
+            {t('modal.redirectHint').replace('{url}', redirectUrl)}
           </p>
 
           <div className="flex items-center gap-3">
             <button
               type="submit"
-              className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-center text-lg font-semibold text-white transition hover:bg-brand-500"
+              className="w-full rounded-2xl bg-brand-500 px-6 py-3 text-center text-lg font-semibold text-[#2d0f08] shadow-[0_12px_24px_rgba(255,122,41,0.35)] transition hover:bg-brand-400"
             >
-              Send order email
+              {t('modal.submit')}
             </button>
             <button
               type="button"
               onClick={onClose}
               className={`rounded-2xl px-6 py-3 text-sm font-semibold ${
-                isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                isDark ? 'text-[#fbdccd] hover:text-white' : 'text-[#7a4034] hover:text-[#a14a39]'
               }`}
             >
-              Cancel
+              {t('modal.cancel')}
             </button>
           </div>
         </form>

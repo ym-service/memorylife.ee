@@ -6,8 +6,8 @@ const ThemeToggle = () => {
 
   const baseClasses = `inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] shadow-lg transition`;
   const colorClasses = isDark
-    ? 'border-white/10 bg-slate-900/80 text-slate-200 hover:border-brand-400 hover:text-white'
-    : 'border-slate-200 bg-white/70 text-slate-700 hover:border-brand-400 hover:text-slate-900';
+    ? 'border-[#f2c6a8]/40 bg-[#2b1416]/80 text-[#fee9db] hover:border-[#ffb77c] hover:text-white'
+    : 'border-[#d9a890] bg-[#fff5ef] text-[#7a342b] hover:border-[#f4a261] hover:text-[#4a1e18]';
 
   return (
     <button
@@ -20,7 +20,7 @@ const ThemeToggle = () => {
         <>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 text-yellow-300"
+            className="h-4 w-4 text-[#ffd89a]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -38,7 +38,7 @@ const ThemeToggle = () => {
         <>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 text-slate-900"
+            className="h-4 w-4 text-[#5a1f16]"
             viewBox="0 0 24 24"
             fill="currentColor"
           >

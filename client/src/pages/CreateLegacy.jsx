@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import PlatePreview from '../components/PlatePreview.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import OrderModal from '../components/OrderModal.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
+import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 
 const API_URL = 'https://memorylife-ee.onrender.com';
 const API_BASE_URL = import.meta.env.VITE_API_URL || `${API_URL}/api`;
@@ -48,10 +50,11 @@ const CreateLegacy = () => {
 
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { t } = useLanguage();
 
   useEffect(() => {
-    document.title = 'Memorylife - Digital legacy';
-  }, []);
+    document.title = t('heroTitle');
+  }, [t]);
 
   const appOrigin =
     typeof window !== 'undefined'
@@ -69,7 +72,7 @@ const CreateLegacy = () => {
   const fallbackSlug = slugFromTitle(formData.title) || 'legacy-xxxx';
   const displaySlug = result?.slug || fallbackSlug;
   const displayUrl = result?.legacyUrl || `${appOrigin}/legacy/${displaySlug}`;
-  const displayTitle = result?.title || formData.title || 'Memorylife tribute';
+  const displayTitle = result?.title || formData.title || t('heroTitle');
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -121,17 +124,17 @@ const CreateLegacy = () => {
 
 
   const cardBase = isDark
-    ? 'rounded-3xl border border-white/5 bg-slate-900/80 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur'
-    : 'rounded-3xl bg-white shadow-card';
+    ? 'rounded-3xl border border-[#4b2424]/60 bg-[#1d0b0f]/90 shadow-[0_30px_80px_rgba(17,5,6,0.65)] backdrop-blur'
+    : 'rounded-3xl bg-[#fff7f0] shadow-card border border-[#f3d2bf]/60';
   const cardClasses = `${cardBase} p-6 sm:p-8`;
 
   const inputClasses = `w-full rounded-2xl border px-4 py-3 text-base outline-none transition focus:ring-2 ${
     isDark
-      ? 'border-slate-700 bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:border-brand-400 focus:ring-brand-500/30'
-      : 'border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-500 focus:border-brand-500 focus:ring-brand-100'
+      ? 'border-[#5b2b28] bg-[#2b1517] text-[#fee9da] placeholder:text-[#b9857b] focus:border-[#ffb07c] focus:ring-[#f9b386]/30'
+      : 'border-[#f0d4c5] bg-white text-[#5c261f] placeholder:text-[#c08c7d] focus:border-[#f79963] focus:ring-[#ffd5b3]/50'
   }`;
 
-  const textMuted = isDark ? 'text-slate-400' : 'text-slate-600';
+  const textMuted = isDark ? 'text-[#d9b1a2]' : 'text-[#7b463c]';
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-12 pt-10 md:flex-row md:items-start md:justify-between md:pt-16">
@@ -139,23 +142,21 @@ const CreateLegacy = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-400">
-              Memorylife
+              {t('heroTag')}
             </p>
-            <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-              Legacy Reimagined
-            </h1>
-            <p className={`text-lg ${textMuted}`}>
-              More than a name. A story. This plaque unlocks a beautiful personal page for their photos,
-              videos, and stories. Preserved forever.
-            </p>
+            <h1 className="text-4xl font-bold leading-tight md:text-5xl">{t('heroTitle')}</h1>
+            <p className={`text-lg ${textMuted}`}>{t('heroLead')}</p>
           </div>
-          <ThemeToggle />
+          <div className="flex gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className={cardClasses}>
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-semibold">
-              Title
+              {t('form.titleLabel')}
             </label>
             <input
               type="text"
@@ -163,7 +164,7 @@ const CreateLegacy = () => {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Family legacy of the Petrovs"
+              placeholder={t('form.titlePlaceholder')}
               className={inputClasses}
               required
             />
@@ -171,14 +172,14 @@ const CreateLegacy = () => {
 
           <div className="space-y-2">
             <label htmlFor="content" className="text-sm font-semibold">
-              Story
+              {t('form.storyLabel')}
             </label>
             <textarea
               id="content"
               name="content"
               value={formData.content}
               onChange={handleChange}
-              placeholder="Share key milestones, memories, facts..."
+              placeholder={t('form.storyPlaceholder')}
               rows="6"
               className={`${inputClasses} min-h-[160px]`}
               required
@@ -187,7 +188,7 @@ const CreateLegacy = () => {
 
           <div className="space-y-2">
             <label htmlFor="image_url" className="text-sm font-semibold">
-              Photo URL
+              {t('form.photoLabel')}
             </label>
             <input
               type="url"
@@ -198,9 +199,7 @@ const CreateLegacy = () => {
               placeholder="https://example.com/photo.jpg"
               className={inputClasses}
             />
-            <p className={`text-xs ${textMuted}`}>
-              Optional. If empty, the public page will fall back to a default photo.
-            </p>
+            <p className={`text-xs ${textMuted}`}>{t('form.photoHint')}</p>
           </div>
 
           {error && (
@@ -217,9 +216,9 @@ const CreateLegacy = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-center text-lg font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-brand-300"
+              className="w-full rounded-2xl bg-brand-500 px-6 py-3 text-center text-lg font-semibold text-[#2b0e08] shadow-[0_15px_30px_rgba(255,122,41,0.35)] transition hover:bg-brand-400 focus:ring-2 focus:ring-brand-200 disabled:cursor-not-allowed disabled:bg-brand-200"
             >
-              {isSubmitting ? 'Creating page...' : 'Create Memorylife page'}
+              {isSubmitting ? `${t('buttons.create')}...` : t('buttons.create')}
             </button>
             <button
               type="button"
@@ -227,16 +226,14 @@ const CreateLegacy = () => {
               disabled={!result}
               className={`w-full rounded-2xl border px-6 py-3 text-sm font-semibold transition ${
                 result
-                  ? 'border-brand-500 text-brand-400 hover:bg-brand-500/10'
-                  : 'border-slate-300 text-slate-400'
+                  ? 'border-[#ffb482] text-[#ffb482] hover:bg-[#ffb482]/10'
+                  : 'border-[#4a2a28] text-[#815854]'
               }`}
             >
-              Order a Memorylife plaque
+              {t('buttons.order')}
             </button>
             {!result && (
-              <p className={`text-xs text-center ${textMuted}`}>
-                Generate a Memorylife page to unlock plaque ordering.
-              </p>
+              <p className={`text-xs text-center ${textMuted}`}>{t('buttons.orderLocked')}</p>
             )}
           </div>
         </form>
@@ -255,21 +252,23 @@ const CreateLegacy = () => {
           <div
             className={`space-y-3 rounded-3xl p-6 ${
               isDark
-                ? 'border border-white/5 bg-slate-900/80 backdrop-blur'
-                : 'bg-white shadow-card'
+                ? 'border border-[#4f2929]/70 bg-[#1c0b0e]/85 backdrop-blur'
+                : 'bg-[#fff1e7] shadow-card border border-[#f3d1bd]/70'
             }`}
           >
-            <h3 className="text-xl font-semibold">Your page is live</h3>
-            <p className={`text-sm ${textMuted}`}>
-              Share the link with loved ones. The QR code opens the Memorylife story instantly.
-            </p>
+            <h3 className="text-xl font-semibold">{t('previewCard.title')}</h3>
+            <p className={`text-sm ${textMuted}`}>{t('previewCard.body')}</p>
             <div
               className={`rounded-2xl p-4 text-sm ${
-                isDark ? 'bg-slate-800 text-slate-200' : 'bg-slate-50 text-slate-700'
+                isDark ? 'bg-[#2b1416] text-[#fde4d4]' : 'bg-[#ffe7d6] text-[#5c2a24]'
               }`}
             >
-              <p className="font-semibold">Slug: {result.slug}</p>
-              <p className={textMuted}>URL: {result.legacyUrl}</p>
+              <p className="font-semibold">
+                {t('previewCard.slug')}: {result.slug}
+              </p>
+              <p className={textMuted}>
+                {t('previewCard.url')}: {result.legacyUrl}
+              </p>
             </div>
           </div>
         )}

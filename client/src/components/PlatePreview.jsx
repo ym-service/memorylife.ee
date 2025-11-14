@@ -4,19 +4,16 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import QRCode from 'qrcode';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const TEXTURE_RESOLUTION = 1024;
-const MATERIALS = [
-  { id: 'steel', label: 'Steel' },
-  { id: 'copper', label: 'Copper' },
-  { id: 'matte', label: 'Matte steel' },
-];
+const MATERIALS = ['steel', 'copper', 'matte'];
 
 const SHAPE_OPTIONS = [
-  { id: 'rectangle', label: 'Rectangle' },
-  { id: 'ellipse', label: 'Ellipse' },
-  { id: 'star5', label: 'Five-point star' },
-  { id: 'star4', label: 'Star of David' },
+  { id: 'rectangle', labelKey: 'modal.shapes.rectangle' },
+  { id: 'ellipse', labelKey: 'modal.shapes.ellipse' },
+  { id: 'star5', labelKey: 'modal.shapes.star5' },
+  { id: 'star4', labelKey: 'modal.shapes.star4' },
 ];
 
 const SHAPE_SAFE_SCALE = {
@@ -231,12 +228,13 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
   const [dimensions, setDimensions] = useState(defaultDimensions);
   const [shape, setShape] = useState(SHAPE_OPTIONS[0].id);
 
-  const engravingText = (title || 'Memorylife').trim();
-  const engravingUrl = (url || 'https://memorylife.local/legacy/sample').trim();
-  const engravingSlug = (slug || 'legacy-preview').trim();
-
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { t } = useLanguage();
+
+  const engravingText = (title || t('plate.brand')).trim();
+  const engravingUrl = (url || 'https://memorylife.local/legacy/sample').trim();
+  const engravingSlug = (slug || 'legacy-preview').trim();
 
   useEffect(() => {
     snapshotCallbackRef.current = onSnapshot;
@@ -244,11 +242,11 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
   const dimensionFields = useMemo(
     () => [
-      { id: 'width', label: 'Width (cm)', min: 6, max: 30, step: 0.5 },
-      { id: 'height', label: 'Height (cm)', min: 6, max: 25, step: 0.5 },
+      { id: 'width', labelKey: 'plate.width', min: 6, max: 30, step: 0.5 },
+      { id: 'height', labelKey: 'plate.height', min: 6, max: 25, step: 0.5 },
       {
         id: 'depth',
-        label: 'Thickness (mm)',
+        labelKey: 'plate.thickness',
         min: 1,
         max: 20,
         step: 0.5,
@@ -284,6 +282,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     const height = width * 0.75;
 
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#0b0405');
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
     camera.position.set(25, 25, 25);
     camera.lookAt(0, 0, 0);
@@ -301,10 +300,14 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     controls.minDistance = 8;
     controls.maxDistance = 80;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const directional = new THREE.DirectionalLight(0xffffff, 0.8);
+    scene.add(new THREE.AmbientLight(0xfff1da, 0.6));
+    const directional = new THREE.DirectionalLight(0xffcba0, 0.85);
     directional.position.set(1, 1.2, 1);
     scene.add(directional);
+
+    const flickerLight = new THREE.PointLight(0xffc58f, 2.2, 180, 2);
+    flickerLight.position.set(-12, 14, 28);
+    scene.add(flickerLight);
 
     const geometry = createGeometryForShape(SHAPE_OPTIONS[0].id, defaultDimensions);
     const placeholderMaterial = new THREE.MeshStandardMaterial({ color: 0x5a6072 });
@@ -321,6 +324,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       animationFrame: null,
       currentMaterial: placeholderMaterial,
       revision: 0,
+      flickerLight,
+      flickerClock: new THREE.Clock(),
     };
 
     new RGBELoader()
@@ -331,6 +336,14 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       });
 
     const animate = () => {
+      if (state.flickerLight && state.flickerClock) {
+        const t = state.flickerClock.getElapsedTime();
+        const oscillation = Math.sin(t * 2.2) * 0.3;
+        const noise = (Math.random() - 0.5) * 0.2;
+        state.flickerLight.intensity = 1.6 + oscillation + noise;
+        state.flickerLight.position.x = Math.sin(t * 0.6) * 4 - 4;
+        state.flickerLight.position.y = 12 + Math.sin(t * 1.1) * 1.5;
+      }
       controls.update();
       renderer.render(scene, camera);
       state.animationFrame = requestAnimationFrame(animate);
@@ -368,6 +381,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
       disposeMaterial(state.plaqueMesh.material);
       state.plaqueMesh.geometry.dispose();
       if (state.engravingTexture) state.engravingTexture.dispose();
+      if (state.flickerLight) scene.remove(state.flickerLight);
       state.scene.clear();
       stateRef.current = null;
     };
@@ -657,6 +671,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         bumpMap: engravingTexture,
         bumpScale,
         envMapIntensity: 1,
+        emissive: new THREE.Color(0x2a0d0f),
+        emissiveIntensity: 0.15,
       });
 
       materialInstance.roughnessMap.magFilter = THREE.NearestFilter;
@@ -676,6 +692,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
         clearcoat: 0.04,
         clearcoatRoughness: 0.7,
         envMapIntensity: 0.3,
+        emissive: new THREE.Color(0x1a090b),
+        emissiveIntensity: 0.12,
       });
     }
     materialInstance.side = THREE.FrontSide;
@@ -773,8 +791,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
   const controlInputClasses = `mt-1 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:ring-2 ${
     isDark
-      ? 'border-white/10 bg-white/5 text-white focus:border-brand-400 focus:ring-brand-400/30'
-      : 'border-slate-300 bg-white text-slate-900 focus:border-brand-500 focus:ring-brand-200'
+      ? 'border-[#5b2b28] bg-[#200a0e] text-[#fee6d6] focus:border-[#ffad73] focus:ring-[#fcb789]/30'
+      : 'border-[#f0d2c3] bg-white text-[#5c2420] focus:border-[#f7935c] focus:ring-[#ffd3af]/50'
   }`;
 
   const getDisplayValue = (field) =>
@@ -786,23 +804,23 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
     <div
       className={`rounded-[2.2rem] p-[2px] ${
         isDark
-          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-[0_30px_80px_rgba(0,0,0,0.45)]'
-          : 'bg-gradient-to-br from-slate-200 via-slate-100 to-white shadow-card'
+          ? 'bg-gradient-to-br from-[#3a161b] via-[#1b0b0f] to-[#070203] shadow-[0_40px_90px_rgba(9,2,3,0.8)]'
+          : 'bg-gradient-to-br from-[#fff1e6] via-[#ffe5d3] to-white shadow-card'
       }`}
     >
       <div
         className={`rounded-[2.1rem] p-6 ${
-          isDark ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'
+          isDark ? 'bg-[#120508]/95 text-[#fee8d9]' : 'bg-[#fff7f0] text-[#4e1f18]'
         }`}
       >
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.4em] text-brand-300">Memorylife</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-brand-300">{t('plate.brand')}</p>
           <h2 className="text-2xl font-semibold">{engravingText}</h2>
-          <p className="text-xs uppercase tracking-[0.4em] text-brand-300">3D QR plaque preview</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-brand-300">{t('plate.preview')}</p>
         </div>
         <div
-          className={`mt-5 overflow-hidden rounded-3xl ${
-            isDark ? 'bg-slate-900/40' : 'bg-slate-100'
+          className={`preview-flicker mt-5 overflow-hidden rounded-3xl ${
+            isDark ? 'bg-[#14060a]/80' : 'bg-[#fff4ec]'
           }`}
         >
           <canvas ref={canvasRef} className="block h-[320px] w-full" />
@@ -810,24 +828,26 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
         <div className="mt-6 space-y-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-400">Material</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-400">
+              {t('plate.material')}
+            </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              {MATERIALS.map((item) => (
+              {MATERIALS.map((id) => (
                 <button
-                  key={item.id}
+                  key={id}
                   type="button"
-                  onClick={() => setMaterial(item.id)}
+                  onClick={() => setMaterial(id)}
                   className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
-                    material === item.id
+                    material === id
                       ? isDark
-                        ? 'border-brand-400 bg-white/10 text-white'
-                        : 'border-brand-500 bg-brand-50 text-brand-700'
+                        ? 'border-[#ffb482] bg-[#341215] text-[#ffe9d9]'
+                        : 'border-[#f4a366] bg-[#fff0e5] text-[#7c3227]'
                       : isDark
-                      ? 'border-white/10 bg-white/5 text-slate-300 hover:border-white/30'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-brand-200'
+                      ? 'border-[#482224] bg-[#1b0a0d] text-[#dba493] hover:border-[#ffb482]/50'
+                      : 'border-[#f3d2bf] bg-white text-[#713026] hover:border-[#ffa26d]'
                   }`}
                 >
-                  {item.label}
+                  {t(`plate.materials.${id}`)}
                 </button>
               ))}
             </div>
@@ -835,10 +855,10 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
           <label
             className={`text-xs font-semibold uppercase tracking-[0.2em] ${
-              isDark ? 'text-slate-400' : 'text-slate-500'
+              isDark ? 'text-[#d8aa9d]' : 'text-[#7b453d]'
             }`}
           >
-            Plate shape
+            {t('plate.shape')}
             <select
               value={shape}
               onChange={(event) => setShape(event.target.value)}
@@ -846,7 +866,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
             >
               {SHAPE_OPTIONS.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </option>
               ))}
             </select>
@@ -857,10 +877,10 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
               <label
                 key={field.id}
                 className={`text-xs font-semibold uppercase tracking-[0.2em] ${
-                  isDark ? 'text-slate-400' : 'text-slate-500'
+                  isDark ? 'text-[#d8aa9d]' : 'text-[#7b453d]'
                 }`}
               >
-                {field.label}
+                {t(field.labelKey)}
                 <input
                   type="number"
                   min={field.min}
@@ -876,7 +896,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
 
           <label
             className={`flex items-center gap-3 text-sm font-medium ${
-              isDark ? 'text-slate-200' : 'text-slate-700'
+              isDark ? 'text-[#fde2d2]' : 'text-[#5c2c24]'
             }`}
           >
             <input
@@ -884,23 +904,23 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
               checked={border}
               onChange={(event) => setBorder(event.target.checked)}
               className={`h-4 w-4 rounded  text-brand-400 focus:ring-brand-400 ${
-                isDark ? 'border-white/30 bg-transparent' : 'border-slate-300 bg-white'
+                isDark ? 'border-[#f4c7ac]/50 bg-transparent' : 'border-[#f3d0bf] bg-white'
               }`}
             />
-            Engraved border
+            {t('plate.border')}
           </label>
 
           <div
             className={`rounded-2xl border border-dashed p-4 text-sm ${
               isDark
-                ? 'border-white/10 bg-white/5 text-slate-200'
-                : 'border-slate-200 bg-slate-50 text-slate-700'
+                ? 'border-[#f3c6ad]/30 bg-[#1b0a0d]/70 text-[#ffe3d3]'
+                : 'border-[#f4cdb9] bg-[#fff4ec] text-[#6c2f25]'
             }`}
           >
-            <p className="font-semibold">Live QR URL:</p>
+            <p className="font-semibold">{t('plate.liveUrl')}:</p>
             <p className="break-all text-sm">{engravingUrl}</p>
             <p className="mt-2 text-xs uppercase tracking-[0.3em] text-brand-400">
-              Slug: {engravingSlug}
+              {t('plate.slug')}: {engravingSlug}
             </p>
           </div>
         </div>

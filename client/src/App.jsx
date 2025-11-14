@@ -10,7 +10,7 @@ const App = () => {
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
-        isDark ? 'bg-[#030712] text-slate-100' : 'bg-slate-50 text-slate-900'
+        isDark ? 'text-[#fde9da]' : 'text-[#3a1a16]'
       }`}
     >
       <Routes>
