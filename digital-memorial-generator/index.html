@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Memorial Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0f0b09;
+        --bg-elev: #1b1410;
+        --bg-elev-2: #231a15;
+        --text: #e7e1d6;
+        --text-dim: #c9c0b3;
+        --accent: #d4a373;
+        --accent-2: #b88339;
+        --error: #e86a6a;
+        --ok: #6ae88d;
+        --muted: #8a7b6d;
+        --shadow: 0 10px 40px rgba(0,0,0,0.6);
+        --radius: 16px;
+      }
+       body {
+        background: radial-gradient(1200px 800px at 70% 0%, #1a140f 0%, #100c0a 60%, #0b0908 100%), var(--bg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+CiAgPGZpbHRlciBpZD0ibiI+CiAgICA8ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44IiBudW1PY3RhdmVzPSIyIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+CiAgICA8ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+CiAgICA8ZmVDb21wb25lbnRUcmFuc2Zlcj4KICAgICAgPGZlRnVuY0EgdHlwZT0idGFibGUiIHRhYmxlVmFsdWVzPSIwIDAuMDUgMC4xMiAwLjA1IDAiLz4KICAgIDwvZmVDb21wb25lbnRUcmFuc2Zlcj4KICA8L2ZpbHRlcj4KICA8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsdGVyPSJ1cmwoI24pIiAvPgo8L3N2Zz4=");
+        background-size: 160px 160px;
+        opacity: .25;
+        pointer-events: none;
+        mix-blend-mode: soft-light;
+      }
+       @keyframes flicker {
+        0%, 100% { transform: translateY(0) rotate(0deg) scale(1); filter: brightness(1); }
+        35% { transform: translateY(-1px) rotate(-1.2deg) scale(1.05); filter: brightness(1.05); }
+        70% { transform: translateY(0.5px) rotate(1.2deg) scale(0.98); filter: brightness(0.95); }
+      }
+      @keyframes frameGlow {
+        0% { filter: hue-rotate(0deg) brightness(1); }
+        50% { filter: hue-rotate(20deg) brightness(1.1); }
+        100% { filter: hue-rotate(0deg) brightness(1); }
+      }
+      @media print {
+        body { background: #fff; color: #000; }
+        body::after { display:none; }
+        .no-print { display:none !important; }
+        .print-black-text { color: #000 !important; }
+      }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'serif': ['"Merriweather"', 'serif'],
+              'sans': ['"Lato"', 'sans-serif']
+            },
+            colors: {
+              'brand-bg': 'var(--bg)',
+              'brand-bg-elev': 'var(--bg-elev)',
+              'brand-bg-elev-2': 'var(--bg-elev-2)',
+              'brand-text': 'var(--text)',
+              'brand-text-dim': 'var(--text-dim)',
+              'brand-accent': 'var(--accent)',
+              'brand-accent-2': 'var(--accent-2)',
+              'brand-muted': 'var(--muted)',
+            },
+            boxShadow: {
+              'main': 'var(--shadow)',
+            },
+            borderRadius: {
+              'main': 'var(--radius)',
+            },
+            animation: {
+                flicker: 'flicker 1.8s ease-in-out infinite',
+                frameGlow: 'frameGlow 12s linear infinite',
+            }
+          }
+        }
+      }
+    </script>
+
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-brand-bg text-brand-text font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

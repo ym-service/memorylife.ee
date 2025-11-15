@@ -34,6 +34,8 @@ const translations = {
         'Classic brass QR plaque for headstones or memorial benches.',
         'Modern matte steel plate for interior displays or gifts.',
       ],
+      demoLink: 'View the Henry Ford memorial demo',
+      demoUrl: '/digital-memorial-generator/index.html',
     },
     previewCard: {
       title: 'Your page is live',
@@ -131,6 +133,8 @@ const translations = {
         'Klassikaline messingplaat QR-koodiga kalmudele või mälestuspinkidele.',
         'Moodsate ruumide või kingituste jaoks matt terasest plaaster.',
       ],
+      demoLink: 'Vaata Henry Fordi demo-lehte',
+      demoUrl: '/digital-memorial-generator/index.html',
     },
     previewCard: {
       title: 'Teie leht on valmis',
@@ -227,6 +231,8 @@ const translations = {
         'Класична латунна плашка з QR для пам’ятників або лав.',
         'Сучасна матова сталева табличка для інтер’єрів чи подарунків.',
       ],
+      demoLink: 'Переглянути демо-пам’ятну сторінку Генрі Форда',
+      demoUrl: '/digital-memorial-generator/index.html',
     },
     previewCard: {
       title: 'Сторінка готова',
@@ -323,6 +329,8 @@ const translations = {
         'Классическая латунная табличка с QR-кодом для памятников и парков.',
         'Современная матовая сталь для интерьеров или памятных подарков.',
       ],
+      demoLink: 'Посмотреть демо-страницу памяти Генри Форда',
+      demoUrl: '/digital-memorial-generator/index.html',
     },
     previewCard: {
       title: 'Страница готова',

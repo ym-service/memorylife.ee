@@ -130,6 +130,21 @@ const AboutModal = ({ open, onClose }) => {
             </div>
           ))}
         </div>
+
+        <div className="mt-6 flex justify-end">
+          <a
+            href={t('about.demoUrl')}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+              isDark
+                ? 'border border-[#f4c7ad]/40 text-[#ffe2d1] hover:bg-[#f4c7ad]/10'
+                : 'border border-[#f5cdbb] text-[#6c2f25] hover:bg-[#ffe3d1]'
+            }`}
+          >
+            {t('about.demoLink')}
+          </a>
+        </div>
       </div>
     </div>
   );
