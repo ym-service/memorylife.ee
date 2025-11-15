@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const OrderModal = ({
@@ -14,6 +14,11 @@ const OrderModal = ({
   isDark,
 }) => {
   const { t } = useLanguage();
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -30,6 +35,43 @@ const OrderModal = ({
       document.body.style.overflow = '';
     };
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) {
+      setOffset({ x: 0, y: 0 });
+      setIsDragging(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!isDragging) return undefined;
+    const handleMove = (event) => {
+      const pointerX = event.clientX ?? (event.touches ? event.touches[0].clientX : 0);
+      const pointerY = event.clientY ?? (event.touches ? event.touches[0].clientY : 0);
+      const deltaX = pointerX - dragStartRef.current.x;
+      const deltaY = pointerY - dragStartRef.current.y;
+      setOffset({
+        x: dragOffsetRef.current.x + deltaX,
+        y: dragOffsetRef.current.y + deltaY,
+      });
+    };
+    const stop = () => setIsDragging(false);
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', stop);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', stop);
+    };
+  }, [isDragging]);
+
+  const startDrag = (event) => {
+    const pointerX = event.clientX ?? (event.touches ? event.touches[0].clientX : 0);
+    const pointerY = event.clientY ?? (event.touches ? event.touches[0].clientY : 0);
+    dragStartRef.current = { x: pointerX, y: pointerY };
+    dragOffsetRef.current = offset;
+    setIsDragging(true);
+    event.preventDefault();
+  };
 
   if (!open) {
     return null;
@@ -83,6 +125,7 @@ const OrderModal = ({
         className={`w-full max-w-lg rounded-3xl p-6 shadow-2xl ${
           isDark ? 'border border-[#4c2426]/70 bg-[#1b0b0e]' : 'bg-[#fff4ed] border border-[#f3cdb9]'
         }`}
+        style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
       >
         <div className="flex items-start justify-between">
           <div>
@@ -115,6 +158,18 @@ const OrderModal = ({
             </svg>
           </button>
         </div>
+
+        <button
+          type="button"
+          onPointerDown={startDrag}
+          className={`mt-4 mb-4 w-full rounded-full border px-4 py-1 text-xs uppercase tracking-[0.4em] ${
+            isDark
+              ? 'border-[#f4c7ad]/30 text-[#fbe1d3]'
+              : 'border-[#f4cdb9] text-[#6c2f25]'
+          }`}
+        >
+          ↕
+        </button>
 
         <form
           action={formAction}
