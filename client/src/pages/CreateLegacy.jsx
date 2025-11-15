@@ -4,6 +4,7 @@ import PlatePreview from '../components/PlatePreview.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import OrderModal from '../components/OrderModal.jsx';
+import AboutModal from '../components/AboutModal.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 
@@ -45,6 +46,7 @@ const CreateLegacy = () => {
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [isOrderModalOpen, setOrderModalOpen] = useState(false);
+  const [isAboutOpen, setAboutOpen] = useState(false);
   const [plateOptions, setPlateOptions] = useState(DEFAULT_PLATE_OPTIONS);
   const [previewImage, setPreviewImage] = useState('');
   const [photoName, setPhotoName] = useState('');
@@ -167,9 +169,20 @@ const CreateLegacy = () => {
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">{t('heroTitle')}</h1>
             <p className={`text-lg ${textMuted}`}>{t('heroLead')}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
             <LanguageSwitcher />
             <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setAboutOpen(true)}
+              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                isDark
+                  ? 'border-[#f4c3aa]/30 bg-[#2a0f12] text-[#ffd8c6] hover:border-[#ffb387]'
+                  : 'border-[#f3cdbb] bg-[#ffe9da] text-[#6c2f25] hover:text-[#a3513b]'
+              }`}
+            >
+              {t('buttons.about')}
+            </button>
           </div>
         </div>
 
@@ -319,6 +332,7 @@ const CreateLegacy = () => {
         redirectUrl={ORDER_REDIRECT_URL}
         isDark={isDark}
       />
+      <AboutModal open={isAboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 };

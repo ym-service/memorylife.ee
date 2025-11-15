@@ -22,6 +22,18 @@ const translations = {
       create: 'Create Memorylife page',
       order: 'Order a Memorylife plaque',
       orderLocked: 'Generate a Memorylife page to unlock plaque ordering.',
+      about: 'About',
+    },
+    about: {
+      title: 'How Memorylife works',
+      body:
+        'Each QR plaque links to a private page where you can keep stories, photos, and videos. Edit or expand the memorial any time from your account.',
+      note:
+        'When you order a plaque, you receive both the physical QR tab and permanent access to the online memorial.',
+      examples: [
+        'Classic brass QR plaque for headstones or memorial benches.',
+        'Modern matte steel plate for interior displays or gifts.',
+      ],
     },
     previewCard: {
       title: 'Your page is live',
@@ -107,6 +119,18 @@ const translations = {
       create: 'Loo Memorylife leht',
       order: 'Telli Memorylife plaaster',
       orderLocked: 'Looge esmalt leht, et avada tellimisvõimalus.',
+      about: 'Teenusest',
+    },
+    about: {
+      title: 'Kuidas Memorylife töötab',
+      body:
+        'Iga QR-plaastri taga on privaatne leht lugude, fotode ja videodega. Saate mälestust igal ajal oma kontolt täiendada.',
+      note:
+        'Tellimisel saate nii füüsilise plaadi QR-koodiga kui ka püsiva juurdepääsu veebilehele.',
+      examples: [
+        'Klassikaline messingplaat QR-koodiga kalmudele või mälestuspinkidele.',
+        'Moodsate ruumide või kingituste jaoks matt terasest plaaster.',
+      ],
     },
     previewCard: {
       title: 'Teie leht on valmis',
@@ -191,6 +215,18 @@ const translations = {
       create: 'Створити сторінку Memorylife',
       order: 'Замовити плашку Memorylife',
       orderLocked: 'Спочатку створіть сторінку, щоб відкрити замовлення плашки.',
+      about: 'Про сервіс',
+    },
+    about: {
+      title: 'Як працює Memorylife',
+      body:
+        'Кожна QR-плашка веде на приватну сторінку з історіями, фото й відео. Ви можете редагувати цю пам’ять у будь-який момент зі свого акаунта.',
+      note:
+        'Разом із плашкою ви отримуєте доступ до онлайн-сторінки, де зберігається вся інформація.',
+      examples: [
+        'Класична латунна плашка з QR для пам’ятників або лав.',
+        'Сучасна матова сталева табличка для інтер’єрів чи подарунків.',
+      ],
     },
     previewCard: {
       title: 'Сторінка готова',
@@ -275,6 +311,18 @@ const translations = {
       create: 'Создать страницу Memorylife',
       order: 'Заказать табличку Memorylife',
       orderLocked: 'Сначала создайте страницу, чтобы открыть заказ таблички.',
+      about: 'О сервисе',
+    },
+    about: {
+      title: 'Как работает Memorylife',
+      body:
+        'Каждая QR-табличка ведёт на персональную страницу с историями, фото и видео. Вы можете редактировать её в любой момент через свой аккаунт.',
+      note:
+        'Заказывая табличку, вы получаете как физический QR, так и постоянный доступ к онлайн-странице.',
+      examples: [
+        'Классическая латунная табличка с QR-кодом для памятников и парков.',
+        'Современная матовая сталь для интерьеров или памятных подарков.',
+      ],
     },
     previewCard: {
       title: 'Страница готова',
