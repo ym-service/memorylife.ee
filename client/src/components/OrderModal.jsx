@@ -65,6 +65,9 @@ const OrderModal = ({
   }, [isDragging]);
 
   const startDrag = (event) => {
+    if (event.currentTarget !== event.target) {
+      return;
+    }
     const pointerX = event.clientX ?? (event.touches ? event.touches[0].clientX : 0);
     const pointerY = event.clientY ?? (event.touches ? event.touches[0].clientY : 0);
     dragStartRef.current = { x: pointerX, y: pointerY };
@@ -126,6 +129,7 @@ const OrderModal = ({
           isDark ? 'border border-[#4c2426]/70 bg-[#1b0b0e]' : 'bg-[#fff4ed] border border-[#f3cdb9]'
         }`}
         style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
+        onPointerDown={startDrag}
       >
         <div className="flex items-start justify-between">
           <div>
@@ -158,18 +162,6 @@ const OrderModal = ({
             </svg>
           </button>
         </div>
-
-        <button
-          type="button"
-          onPointerDown={startDrag}
-          className={`mt-4 mb-4 w-full rounded-full border px-4 py-1 text-xs uppercase tracking-[0.4em] ${
-            isDark
-              ? 'border-[#f4c7ad]/30 text-[#fbe1d3]'
-              : 'border-[#f4cdb9] text-[#6c2f25]'
-          }`}
-        >
-          ↕
-        </button>
 
         <form
           action={formAction}
