@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
-
-const sampleImages = [
-  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=60',
-];
+import PlatePreview from './PlatePreview.jsx';
 
 const AboutModal = ({ open, onClose }) => {
   const { t } = useLanguage();
@@ -71,6 +67,8 @@ const AboutModal = ({ open, onClose }) => {
     isDark ? 'border border-[#45201e]/70 bg-[#1a0a0d]' : 'bg-[#fff4ec] border border-[#f4cdbb]'
   }`;
 
+  const demoUrl = t('about.demoUrl');
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
       <div
@@ -115,25 +113,21 @@ const AboutModal = ({ open, onClose }) => {
           </button>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {sampleImages.map((src, idx) => (
-            <div
-              key={src}
-              className={`overflow-hidden rounded-2xl border ${
-                isDark ? 'border-[#51302b]' : 'border-[#f5cdbb]'
-              }`}
-            >
-              <img src={src} alt="Memorylife QR plaque example" className="h-40 w-full object-cover" />
-              <p className={`p-3 text-sm ${isDark ? 'text-[#fcdccf]' : 'text-[#6c2f25]'}`}>
-                {t('about.examples')[idx]}
-              </p>
-            </div>
-          ))}
+        <div className="mt-6 space-y-4">
+          <PlatePreview
+            title="Henry Ford"
+            slug="henry-ford"
+            url={demoUrl}
+            showControls={false}
+          />
+          <p className={`text-sm ${isDark ? 'text-[#fcded0]' : 'text-[#72312a]'}`}>
+            Отсканируй меня или нажми на ссылку «View the Henry Ford memorial demo».
+          </p>
         </div>
 
         <div className="mt-6 flex justify-end">
           <a
-            href={t('about.demoUrl')}
+            href={demoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${

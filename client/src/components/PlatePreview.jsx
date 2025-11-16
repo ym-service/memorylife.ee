@@ -217,7 +217,7 @@ const build2dOutlinePoints = (shapeType, width, height) => {
   }
 };
 
-const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
+const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot, showControls = true }) => {
   const canvasRef = useRef(null);
   const stateRef = useRef(null);
   const engravingCanvasRef = useRef(null);
@@ -826,7 +826,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
           <canvas ref={canvasRef} className="block h-[320px] w-full" />
         </div>
 
-        <div className="mt-6 space-y-4">
+        {showControls && (
+          <div className="mt-6 space-y-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-400">
               {t('plate.material')}
@@ -923,7 +924,8 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot }) => {
               {t('plate.slug')}: {engravingSlug}
             </p>
           </div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

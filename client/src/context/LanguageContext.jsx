@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+﻿import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'memorylife-language';
 
@@ -35,7 +35,7 @@ const translations = {
         'Modern matte steel plate for interior displays or gifts.',
       ],
       demoLink: 'View the Henry Ford memorial demo',
-      demoUrl: '/digital-memorial-generator/index.html',
+      demoUrl: 'https://memorylife.eu/legacy/henry-ford/',
     },
     previewCard: {
       title: 'Your page is live',
@@ -134,7 +134,7 @@ const translations = {
         'Moodsate ruumide või kingituste jaoks matt terasest plaaster.',
       ],
       demoLink: 'Vaata Henry Fordi demo-lehte',
-      demoUrl: '/digital-memorial-generator/index.html',
+      demoUrl: 'https://memorylife.eu/legacy/henry-ford/',
     },
     previewCard: {
       title: 'Teie leht on valmis',
@@ -232,7 +232,7 @@ const translations = {
         'Сучасна матова сталева табличка для інтер’єрів чи подарунків.',
       ],
       demoLink: 'Переглянути демо-пам’ятну сторінку Генрі Форда',
-      demoUrl: '/digital-memorial-generator/index.html',
+      demoUrl: 'https://memorylife.eu/legacy/henry-ford/',
     },
     previewCard: {
       title: 'Сторінка готова',
@@ -330,7 +330,7 @@ const translations = {
         'Современная матовая сталь для интерьеров или памятных подарков.',
       ],
       demoLink: 'Посмотреть демо-страницу памяти Генри Форда',
-      demoUrl: '/digital-memorial-generator/index.html',
+      demoUrl: 'https://memorylife.eu/legacy/henry-ford/',
     },
     previewCard: {
       title: 'Страница готова',
@@ -447,3 +447,4 @@ export const LanguageProvider = ({ children }) => {
 };
 
 export const useLanguage = () => useContext(LanguageContext);
+
