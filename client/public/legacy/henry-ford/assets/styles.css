@@ -57,6 +57,8 @@
     body {
       margin: 0;
       padding: 0;
+      background-color: var(--bg);
+      overscroll-behavior-y: contain;
     }
 
     body {
@@ -206,6 +208,26 @@
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .controls {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .controls button {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+
+      .theme-toggle,
+      .lang-toggle {
+        justify-content: space-between;
+      }
     }
 
     .pill-label {
