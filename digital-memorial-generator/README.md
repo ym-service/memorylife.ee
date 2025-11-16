@@ -1,20 +1,19 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+﻿# Digital Memorial Generator
 
-# Run and deploy your AI Studio app
+This directory now ships the static **memorylife x Henry Ford** memorial scroll that should be published at `https://memorylife.eu/digital-memorial-generator/index.html`.
 
-This contains everything you need to run your app locally.
+## Structure
 
-View your app in AI Studio: https://ai.studio/apps/drive/18I94XzGX54NTtwqp80QjEUyNZe_QO5Id
+- `index.html` - semantic markup for the full memorial experience.
+- `assets/styles.css` - extracted styles from the demo page so they can be cached independently.
+- `assets/app.js` - tiny script that preserves the theme/language toggle behaviour.
+- `assets/favicon.png` - reused mark that appears both in the browser tab and inside the hero brand lockup.
 
-## Run Locally
+## Updating
 
-**Prerequisites:**  Node.js
+1. Edit `index.html` if you need to tweak the content or markup.
+2. Place shared styles inside `assets/styles.css`; keep inline styles only when absolutely required for unique art direction.
+3. Touch `assets/app.js` to adjust behaviour such as the theme switch or future interactions.
+4. When adding new media, store them under `assets/` (prefer subfolders such as `assets/images/`) and reference them with relative paths so the page keeps working when hosted under `/digital-memorial-generator/`.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+No build step is necessary-the page is a plain static bundle that can be uploaded directly to the production hosting.
