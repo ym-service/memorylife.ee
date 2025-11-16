@@ -113,16 +113,13 @@ const AboutModal = ({ open, onClose }) => {
           </button>
         </div>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6">
           <PlatePreview
             title="Henry Ford"
             slug="henry-ford"
             url={demoUrl}
             showControls={false}
           />
-          <p className={`text-sm ${isDark ? 'text-[#fcded0]' : 'text-[#72312a]'}`}>
-            Отсканируй меня или нажми на ссылку «View the Henry Ford memorial demo».
-          </p>
         </div>
 
         <div className="mt-6 flex justify-end">
