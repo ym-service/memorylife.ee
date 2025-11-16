@@ -1,0 +1,671 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>memorylife - Henry Ford biography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="./assets/favicon.png" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <div class="page" id="top">
+    <div class="shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <img src="./assets/favicon.png" alt="memorylife logo and QR to memorylife.eu" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />
+          </div>
+          <div class="brand-text">
+            <h1 class="lang-en">memorylife</h1>
+            <h1 class="lang-ru">memorylife</h1>
+            <p class="lang-en">A warm biography in a single scroll</p>
+            <p class="lang-ru">Тёплая биография в одном экране</p>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="pill-label lang-en">Warm light / dark themes</div>
+          <div class="pill-label lang-ru">Тёплая светлая / тёмная тема</div>
+          <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language" aria-live="polite">
+            <div class="lang-toggle-pill" aria-hidden="true"></div>
+            <span>EN</span>
+            <span>RU</span>
+          </button>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme" aria-live="polite">
+            <div class="theme-toggle-pill" aria-hidden="true"></div>
+            <span><span class="theme-icon sun"></span>Light</span>
+            <span><span class="theme-icon moon"></span>Dark</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-main">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              <span class="lang-en">Biographical portrait</span>
+              <span class="lang-ru">Биографический портрет</span>
+            </div>
+            <h2 id="hero-title" class="hero-title">
+              <span class="lang-en">Henry Ford</span>
+              <span class="lang-ru">Генри Форд</span>
+              <span class="lang-en">the man who put the world on wheels</span>
+              <span class="lang-ru">человек, который поставил мир на колёса</span>
+            </h2>
+            <p class="hero-subtitle lang-en">
+              American engineer and industrialist, founder of the Ford Motor Company and one of the pioneers of the moving assembly line and mass production that made the automobile affordable for millions.
+            </p>
+            <p class="hero-subtitle lang-ru">
+              Американский инженер и промышленник, основатель Ford Motor Company, один из создателей поточного конвейера и массового производства, сделавших автомобиль доступным для миллионов.
+            </p>
+
+            <div class="chips" aria-label="Short overview">
+              <div class="chip hot lang-en">
+                <span class="chip-dot"></span>
+                <span>Industrial revolution on the assembly line</span>
+              </div>
+              <div class="chip hot lang-ru">
+                <span class="chip-dot"></span>
+                <span>Индустриальная революция на конвейере</span>
+              </div>
+
+              <div class="chip lang-en">
+                <span class="chip-dot"></span>
+                <span>High wages, high volume</span>
+              </div>
+              <div class="chip lang-ru">
+                <span class="chip-dot"></span>
+                <span>Философия высокой зарплаты</span>
+              </div>
+
+              <div class="chip lang-en">
+                <span class="chip-dot"></span>
+                <span>A brilliant, deeply controversial legacy</span>
+              </div>
+              <div class="chip lang-ru">
+                <span class="chip-dot"></span>
+                <span>Сложное наследие и критика</span>
+              </div>
+            </div>
+
+            <dl class="hero-metadata">
+              <div class="stat">
+                <dt class="stat-label lang-en">Lifespan</dt>
+                <dt class="stat-label lang-ru">Годы жизни</dt>
+                <dd class="stat-value">1863 – 1947</dd>
+              </div>
+              <div class="stat">
+                <dt class="stat-label lang-en">Occupation</dt>
+                <dt class="stat-label lang-ru">Род занятий</dt>
+                <dd class="stat-value lang-en">Engineer, industrialist, publisher</dd>
+                <dd class="stat-value lang-ru">Инженер, промышленник, издатель</dd>
+              </div>
+              <div class="stat">
+                <dt class="stat-label lang-en">Key role</dt>
+                <dt class="stat-label lang-ru">Ключевая роль</dt>
+                <dd class="stat-value lang-en">Founder of Ford Motor Company</dd>
+                <dd class="stat-value lang-ru">Основатель Ford Motor Company</dd>
+              </div>
+              <div class="stat">
+                <dt class="stat-label lang-en">Flagship project</dt>
+                <dt class="stat-label lang-ru">Главный проект</dt>
+                <dd class="stat-value lang-en">Model T & the assembly line</dd>
+                <dd class="stat-value lang-ru">Модель T и конвейер</dd>
+              </div>
+              <div class="stat">
+                <dt class="stat-label lang-en">Idea</dt>
+                <dt class="stat-label lang-ru">Идея</dt>
+                <dd class="stat-value lang-en">A car for the middle class</dd>
+                <dd class="stat-value lang-ru">Авто для среднего класса</dd>
+              </div>
+              <div class="stat">
+                <dt class="stat-label lang-en">Legacy</dt>
+                <dt class="stat-label lang-ru">Наследие</dt>
+                <dd class="stat-value lang-en">Fordism & mass production</dd>
+                <dd class="stat-value lang-ru">Фордизм и массовое производство</dd>
+              </div>
+            </dl>
+          </div>
+
+          <aside class="hero-aside" aria-label="Portrait card">
+            <div class="card-portrait">
+              <div class="portrait-header">
+                <div class="portrait-title">
+                  <h3>Henry Ford</h3>
+                  <span class="lang-en">Springwells Township, Michigan → Detroit → world</span>
+                  <span class="lang-ru">Springwells Township, Мичиган → Детройт → мир</span>
+                </div>
+                <div class="year-pill">
+                  <span class="year-pill-dot"></span>
+                  <span>1863 - 1947</span>
+                </div>
+              </div>
+              <div class="portrait-body">
+                <div class="portrait-avatar">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Henry_ford_1919.jpg/500px-Henry_ford_1919.jpg" alt="Portrait of Henry Ford, circa 1919" loading="lazy" />
+                </div>
+                <div class="portrait-text">
+                  <p class="lang-en">
+                    A farmer's son who fell in love with machines, became an engineer at the Edison Illuminating Company, and then built his own car company, reshaping ideas about work, industry, and everyday mobility.
+                  </p>
+                  <p class="lang-ru">
+                    Сын фермера, рано увлёкшийся машинами, стал инженером в Edison Illuminating Company, а затем создал собственную автомобильную компанию, изменив представление о труде, индустрии и повседневной мобильности.
+                  </p>
+                  <div class="tags-inline">
+                    <span>Detroit</span>
+                    <span>Model T</span>
+                    <span>Fordism</span>
+                  </div>
+                </div>
+              </div>
+              <figure class="hero-photo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Ford_assembly_line_-_1913.jpg/960px-Ford_assembly_line_-_1913.jpg" alt="Workers on the Ford assembly line, 1913" loading="lazy" />
+                <figcaption class="lang-en">Workers on the moving assembly line at Ford's Highland Park plant, 1913.</figcaption>
+                <figcaption class="lang-ru">Рабочие на движущемся конвейере на заводе Ford в Хайленд-Парке, 1913 год.</figcaption>
+              </figure>
+            </div>
+          </aside>
+        </section>
+
+        <section class="sections" aria-label="Key biography sections">
+          <article class="section" aria-labelledby="section-early-life">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">1</div>
+                  <div>
+                    <h3 id="section-early-life" class="lang-en">Early years and the road to engineering</h3>
+                    <h3 id="section-early-life-ru" class="lang-ru">Ранние годы и путь к инженерии</h3>
+                    <p class="section-kicker lang-en">From a Michigan farm to a workshop in Detroit</p>
+                    <p class="section-kicker lang-ru">От фермы в Мичигане к мастерской в Детройте</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  Henry Ford was born on July 30, 1863, on a farm in Springwells Township, Michigan, into a family of Irish and Belgian descendants. His schooling was limited to a small rural school, but as a teenager he showed a striking interest in mechanics: he disassembled and repaired clocks for neighbors and relatives, earning a reputation as a talented tinkerer.
+                </p>
+                <p>
+                  At 16 he left the farm for Detroit, working as an apprentice machinist and later servicing steam engines. Hands-on experience with engines, together with the rapid development of technology in the late 19th century, convinced him that the future belonged to machines and new sources of power.
+                </p>
+                <p>
+                  In 1891 Ford joined the Edison Illuminating Company as an engineer. By 1893 he was promoted to chief engineer, which gave him a stable income and time to experiment with gasoline engines. These experiments soon resulted in his first self-propelled vehicles.
+                </p>
+                <ul class="list-inline" aria-label="Key early milestones">
+                  <li>1863 - Born in Michigan</li>
+                  <li>≈12 - First clock repairs</li>
+                  <li>16 - Moves to Detroit</li>
+                  <li>1891 - Engineer at Edison Illuminating Company</li>
+                </ul>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  Генри Форд родился 30 июля 1863 года на ферме в Springwells Township, штат Мичиган, в семье потомков ирландских и бельгийских переселенцев. Его обучение ограничилось сельской школой, однако ещё подростком он проявил необычный интерес к механике: разбирал и чинил часы соседей и родственников, заслужив репутацию умелого мастера.
+                </p>
+                <p>
+                  В 16 лет он покинул ферму и перебрался в Детройт, где работал учеником механика, а затем занимался обслуживанием паровых машин. Опыт работы с двигателями и стремительное развитие техники к концу XIX века убедили его в том, что будущее связано с машинами и новыми источниками энергии.
+                </p>
+                <p>
+                  В 1891 году Форд устроился инженером в Edison Illuminating Company. Уже к 1893 году он стал главным инженером, что дало стабильный доход и время для экспериментов с бензиновыми двигателями. Именно эти опыты вскоре превратились в первые самодвижущиеся экипажи.
+                </p>
+                <ul class="list-inline" aria-label="Ключевые вехи юности">
+                  <li>1863 - Рождение в Мичигане</li>
+                  <li>≈12 лет - первые ремонты часов</li>
+                  <li>16 лет - переезд в Детройт</li>
+                  <li>1891 - инженер в Edison Illuminating Company</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="section" aria-labelledby="section-timeline">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">2</div>
+                  <div>
+                    <h3 id="section-timeline" class="lang-en">Life timeline</h3>
+                    <h3 id="section-timeline-ru" class="lang-ru">Лента жизни</h3>
+                    <p class="section-kicker lang-en">A quick chronology of pivotal moments</p>
+                    <p class="section-kicker lang-ru">Краткая временная шкала ключевых событий</p>
+                  </div>
+                </div>
+              </header>
+              <ul class="timeline lang-en" aria-label="Henry Ford chronology">
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1863</div>
+                  <div class="timeline-title">Birth in Springwells Township</div>
+                  <div class="timeline-text">A boy from a Michigan farm who quickly discovered an attraction to tools and precise mechanisms.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1896</div>
+                  <div class="timeline-title">First car and Edison’s support</div>
+                  <div class="timeline-text">Ford builds his Quadricycle and receives encouragement from Thomas Edison, reinforcing his belief in his path.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1903</div>
+                  <div class="timeline-title">Ford Motor Company</div>
+                  <div class="timeline-text">After failed ventures, Ford launches the company that will become a symbol of 20th‑century industry.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1908</div>
+                  <div class="timeline-title">Model T</div>
+                  <div class="timeline-text">A simple, robust and relatively inexpensive car that many Americans could afford for the first time.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1914</div>
+                  <div class="timeline-title">Five‑dollar workday</div>
+                  <div class="timeline-text">A dramatic raise in minimum daily pay and shorter shifts, a key part of his "social capitalism" policy.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1920s</div>
+                  <div class="timeline-title">Global expansion and fierce controversies</div>
+                  <div class="timeline-text">Worldwide network of plants grows alongside his aggressive and harmful antisemitic publications.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1945–1947</div>
+                  <div class="timeline-title">Succession and death</div>
+                  <div class="timeline-text">After his son Edsel’s death and Ford’s declining health, control passes to his grandson; Henry Ford dies in 1947.</div>
+                </li>
+              </ul>
+
+              <ul class="timeline lang-ru" aria-label="Хронология жизни Генри Форда">
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1863</div>
+                  <div class="timeline-title">Рождение в Springwells Township</div>
+                  <div class="timeline-text">Мальчик с фермы в Мичигане, рано обнаруживший тягу к инструментам и точным механизмам.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1896</div>
+                  <div class="timeline-title">Первый автомобиль и поддержка Эдисона</div>
+                  <div class="timeline-text">Форд создаёт Quadricycle и получает одобрение Томаса Эдисона, что укрепляет его уверенность в выбранном пути.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1903</div>
+                  <div class="timeline-title">Основание Ford Motor Company</div>
+                  <div class="timeline-text">После нескольких неудачных проектов Форд запускает компанию, ставшую символом индустриального XX века.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1908</div>
+                  <div class="timeline-title">Модель T</div>
+                  <div class="timeline-text">Простой, надёжный и относительно недорогой автомобиль, который многие американцы впервые смогли себе позволить.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1914</div>
+                  <div class="timeline-title">Пятидолларовый рабочий день</div>
+                  <div class="timeline-text">Резкое повышение минимальной дневной оплаты труда и сокращение длины смен стало частью его политики «социального капитализма».</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1920‑е</div>
+                  <div class="timeline-title">Международная экспансия и крупные споры</div>
+                  <div class="timeline-text">Рост сети заводов по всему миру сопровождается активной, разрушительной антисемитской публицистикой.</div>
+                </li>
+                <li class="timeline-item">
+                  <div class="timeline-marker" aria-hidden="true"></div>
+                  <div class="timeline-year">1945–1947</div>
+                  <div class="timeline-title">Передача управления и смерть</div>
+                  <div class="timeline-text">После смерти сына Эдсела и ухудшения здоровья он уступает руководство внуку; в 1947 году Форд умирает в возрасте 83 лет.</div>
+                </li>
+              </ul>
+            </div>
+          </article>
+        </section>
+
+        <section class="sections" aria-label="Career and ideas">
+          <article class="section" aria-labelledby="section-career">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">3</div>
+                  <svg class="icon-car" viewBox="0 0 120 40" aria-hidden="true">
+                    <path d="M8 26c0-6 4-11 10-13l18-6c3-.9 6-.9 9 0l18 6c6 2 10 7 10 13v4H8v-4z" fill="none" stroke="rgba(255,160,110,0.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="28" cy="30" r="5" fill="none" stroke="rgba(255,200,155,0.95)" stroke-width="2" />
+                    <circle cx="78" cy="30" r="5" fill="none" stroke="rgba(255,200,155,0.95)" stroke-width="2" />
+                    <path d="M24 18h30l10 8H20l4-8z" fill="rgba(255,200,155,0.3)" stroke="rgba(255,200,155,0.9)" stroke-width="1.4" />
+                  </svg>
+                  <div>
+                    <h3 id="section-career" class="lang-en">Ford Motor Company and the assembly line revolution</h3>
+                    <h3 id="section-career-ru" class="lang-ru">Ford Motor Company и революция на конвейере</h3>
+                    <p class="section-kicker lang-en">How the Model T became a symbol of mass production</p>
+                    <p class="section-kicker lang-ru">Как Модель T стала символом массового производства</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  After several attempts in the car business, Ford founded the Ford Motor Company in 1903. Early success came from improved models, but the real breakthrough arrived in 1908 with the Model T. The car was simple to operate and repair, could handle rough roads, and fit everyday life for both farmers and city dwellers.
+                </p>
+                <p>
+                  To lower costs, Ford refined a system of moving assembly lines and standardized parts. Gradual improvements in workflow slashed the time needed to build a car and allowed the price of the Model T to fall sharply. By the 1920s most American drivers learned to drive in a Ford.
+                </p>
+                <p>
+                  This approach became known as <strong>Fordism</strong>: mass production of standardized goods combined with high productivity and relatively high wages, supported by a dense network of dealers and service stations.
+                </p>
+                <div class="card-grid" aria-label="Key elements of success">
+                  <div class="mini-card">
+                    <div class="mini-label">Technology</div>
+                    <div class="mini-value">Assembly line & standardization</div>
+                    <p>
+                      Moving parts and tightly sequenced operations cut build time from hours to minutes and reshaped factory work worldwide.
+                    </p>
+                  </div>
+                  <div class="mini-card">
+                    <div class="mini-label">Business model</div>
+                    <div class="mini-value">Franchised dealer network</div>
+                    <p>
+                      Independent dealers spread cars and service across North America and abroad, turning the Model T into a cultural icon.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  После нескольких попыток в автомобильном бизнесе Форд основал Ford Motor Company в 1903 году. Первая волна успеха была связана с улучшенными моделями, но настоящий прорыв произошёл в 1908 году с появлением Модели T. Автомобиль был прост в управлении и обслуживании, выдерживал плохие дороги и подходил для повседневной жизни фермеров и горожан.
+                </p>
+                <p>
+                  Чтобы удешевить производство, Форд отшлифовал систему поточного конвейера и стандартизации деталей. Постепенное совершенствование процессов резко сократило время сборки автомобиля и позволило снизить цену Модели T; к 1920‑м годам большинство американских водителей учились ездить именно на ней.
+                </p>
+                <p>
+                  Такой подход получил название <strong>фордизм</strong> – массовое производство стандартных товаров при высокой производительности и относительно высокой зарплате, поддержанное широкой сетью дилеров и сервисных станций.
+                </p>
+                <div class="card-grid" aria-label="Ключевые элементы успеха">
+                  <div class="mini-card">
+                    <div class="mini-label">Технологии</div>
+                    <div class="mini-value">Конвейер и стандартизация</div>
+                    <p>
+                      Поточное движение деталей и строго заданная последовательность операций сократили время сборки с часов до минут и изменили фабричный труд во всём мире.
+                    </p>
+                  </div>
+                  <div class="mini-card">
+                    <div class="mini-label">Бизнес-модель</div>
+                    <div class="mini-value">Сеть дилеров и сервисов</div>
+                    <p>
+                      Независимые дилеры распространяли автомобили и сервис по всей Северной Америке и за её пределами, превратив Модель T в культурный символ.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="section" aria-labelledby="section-labor">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">4</div>
+                  <div>
+                    <h3 id="section-labor" class="lang-en">Labor policy and attitudes toward workers</h3>
+                    <h3 id="section-labor-ru" class="lang-ru">Трудовая политика и отношение к рабочим</h3>
+                    <p class="section-kicker lang-en">High pay, strict discipline, and conflict with unions</p>
+                    <p class="section-kicker lang-ru">Высокая зарплата, жёсткая дисциплина и борьба с профсоюзами</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  Ford saw workers both as the main resource of production and as future customers. In 1914 he introduced the famous five‑dollar workday, more than doubling wages for many employees and shortening shifts. Turnover dropped dramatically and the company attracted some of the best mechanics in Detroit.
+                </p>
+                <p>
+                  At the same time he tightly controlled workers' behavior through a special "sociology department" that monitored housing, debts, and family life. Ford was hostile to trade unions, believing that good management and fair pay should make collective bargaining and strikes unnecessary.
+                </p>
+                <div class="pill-row" aria-label="Core ideas about labor">
+                  <span class="pill">High wages as an investment</span>
+                  <span class="pill">Shorter working day</span>
+                  <span class="pill">Monitoring workers' private lives</span>
+                  <span class="pill">Opposition to trade unions</span>
+                </div>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  Форд рассматривал рабочих одновременно как главный ресурс производства и как будущих покупателей. В 1914 году он ввёл знаменитый пятидолларовый рабочий день, более чем удвоив зарплату многим сотрудникам и сократив длину смен. Текучесть кадров резко снизилась, а компания привлекла лучших механиков Детройта.
+                </p>
+                <p>
+                  Одновременно Форд жёстко контролировал образ жизни работников через специальный «социальный отдел», который следил за условиями проживания, долгами и семейными отношениями. К профсоюзам он относился резко отрицательно, считая, что эффективное управление и достойная оплата должны заменять коллективные договоры и забастовки.
+                </p>
+                <div class="pill-row" aria-label="Ключевые идеи Форда о труде">
+                  <span class="pill">Высокая зарплата как инвестиция</span>
+                  <span class="pill">Сокращённый рабочий день</span>
+                  <span class="pill">Контроль за образом жизни сотрудников</span>
+                  <span class="pill">Негативное отношение к профсоюзам</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="sections" aria-label="Scale and contradictions">
+          <article class="section" aria-labelledby="section-world">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">5</div>
+                  <div>
+                    <h3 id="section-world" class="lang-en">Global reach, aviation, and motorsport</h3>
+                    <h3 id="section-world-ru" class="lang-ru">Международное влияние, авиация и автоспорт</h3>
+                    <p class="section-kicker lang-en">From a single American plant to a worldwide network</p>
+                    <p class="section-kicker lang-ru">От американского завода к глобальной сети</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  Ford aimed for deep vertical integration. The huge River Rouge complex demonstrated how raw materials could be turned into finished cars almost "under one roof". At the same time the company opened plants and assembly operations abroad, first in Britain and Canada and later across Europe and other regions.
+                </p>
+                <p>
+                  In the 1920s Ford entered civil aviation with the Trimotor, one of the first successful U.S. passenger airliners. Earlier he had sponsored racing, using motorsport to showcase the durability of his cars, although he later distanced himself from racing as a distraction from mass production.
+                </p>
+                <ul class="list-inline" aria-label="Main areas of activity">
+                  <li>River Rouge - deeply integrated production</li>
+                  <li>Plants in Europe and Canada</li>
+                  <li>Trimotor - early passenger aircraft</li>
+                  <li>Motorsport as a reliability showcase</li>
+                </ul>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  Форд стремился к максимально независимому производству и вертикальной интеграции. Огромный комплекс River Rouge показал, как сырьё может превращаться в готовый автомобиль практически «под одной крышей». Параллельно компания открывала заводы и сборочные предприятия за рубежом – сначала в Великобритании и Канаде, затем в Европе и других регионах.
+                </p>
+                <p>
+                  В 1920‑е годы Ford участвовала в развитии гражданской авиации, выпуская самолёт Trimotor, ставший одним из первых успешных пассажирских лайнеров США. Ранее Форд активно поддерживал автогонки, используя соревнования для демонстрации надёжности своих машин, хотя позднее отошёл от спорта, считая его отвлекающим от массового производства.
+                </p>
+                <ul class="list-inline" aria-label="Направления деятельности">
+                  <li>River Rouge - интегрированное производство</li>
+                  <li>Заводы в Европе и Канаде</li>
+                  <li>Trimotor - ранний пассажирский самолёт</li>
+                  <li>Автогонки как демонстрация надёжности</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="section" aria-labelledby="section-controversy">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">6</div>
+                  <div>
+                    <h3 id="section-controversy" class="lang-en">Antisemitism and public criticism</h3>
+                    <h3 id="section-controversy-ru" class="lang-ru">Антисемитизм и общественная критика</h3>
+                    <p class="section-kicker lang-en">The darkest part of Henry Ford's legacy</p>
+                    <p class="section-kicker lang-ru">Тёмная часть наследия Генри Форда</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  Ford's biography is marked not only by technological breakthroughs but also by serious moral and political problems. In the 1920s he bought the newspaper <em>The Dearborn Independent</em>, which published a long series of antisemitic articles later collected in the book <em>The International Jew</em>. These texts were distributed through Ford dealers and helped spread prejudice.
+                </p>
+                <p>
+                  His views and publications provoked sharp criticism from Jewish organizations and from the wider public. Although formal apologies were issued later, historians agree that Ford's antisemitic beliefs had long‑lasting negative effects and were cited by extremists, including Nazi leaders in Germany.
+                </p>
+                <div class="critical" role="note" aria-label="Important note">
+                  <div class="critical-icon">!</div>
+                  <div>
+                    <strong>Important:</strong> Henry Ford was both a technical visionary and a carrier of destructive prejudice. Any assessment of his legacy must consider his industrial achievements together with the real harm caused by his political and racist ideas.
+                  </div>
+                </div>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  Биография Форда связана не только с технологическими прорывами, но и с серьёзными моральными и политическими проблемами. В 1920‑е годы он приобрёл газету The Dearborn Independent, где публиковалась серия антисемитских материалов, позже собранных в книгу под названием «Международный еврей». Эти тексты распространялись через сеть дилеров Ford и способствовали распространению предрассудков.
+                </p>
+                <p>
+                  Его взгляды и публикации вызывали резкую критику еврейских организаций и более широкой общественности. Позже были сделаны официальные заявления с извинениями, но историки сходятся во мнении, что антисемитские убеждения Форда оказали долговременное негативное влияние и цитировались экстремистами, включая нацистских лидеров в Германии.
+                </p>
+                <div class="critical" role="note" aria-label="Важное уточнение">
+                  <div class="critical-icon">!</div>
+                  <div>
+                    <strong>Важно помнить:</strong> фигура Генри Форда сочетает технический гений и разрушительные предрассудки. Оценивая его наследие, необходимо учитывать вклад в индустрию и серьёзный вред, нанесённый его политическими и расистскими идеями.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="sections" aria-label="Later years and legacy">
+          <article class="section" aria-labelledby="section-late">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">7</div>
+                  <div>
+                    <h3 id="section-late" class="lang-en">Later years, management, and health</h3>
+                    <h3 id="section-late-ru" class="lang-ru">Поздние годы, руководство и здоровье</h3>
+                    <p class="section-kicker lang-en">When the scale of the company outgrew its founder</p>
+                    <p class="section-kicker lang-ru">Когда масштаб компании перерос возможности основателя</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  By the 1940s Ford's health had deteriorated sharply. After the death of his son Edsel in 1943 he formally returned as president of Ford Motor Company, but in practice he could no longer effectively manage the vast corporation. During World War II and the postwar transition the company faced serious financial and organizational difficulties.
+                </p>
+                <p>
+                  In 1945 leadership passed to his grandson, Henry Ford II, who launched a major restructuring of the business. Henry Ford died on April 7, 1947, at the age of 83. Much of his wealth went to the Ford Foundation, while control of the company remained with the family.
+                </p>
+                <div class="card-grid">
+                  <div class="mini-card">
+                    <div class="mini-label">Legacy</div>
+                    <div class="mini-value">Ford Foundation</div>
+                    <p>
+                      A large philanthropic organization that funds projects in education, human rights, and economic development.
+                    </p>
+                  </div>
+                  <div class="mini-card">
+                    <div class="mini-label">Memory</div>
+                    <div class="mini-value">Industry, culture, debate</div>
+                    <p>
+                      Ford remains a figure admired for engineering achievements and criticized for his public campaigns and beliefs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  К 1940‑м годам здоровье Форда значительно ухудшилось. После смерти сына Эдсела в 1943 году он формально вновь возглавил Ford Motor Company, но фактически уже не мог полноценно управлять гигантской корпорацией. На фоне Второй мировой войны и послевоенного перехода компания столкнулась с серьёзными финансовыми и организационными трудностями.
+                </p>
+                <p>
+                  В 1945 году руководство перешло к внуку, Генри Форду II, который провёл масштабную реорганизацию бизнеса. Сам Форд умер 7 апреля 1947 года в возрасте 83 лет. Значительная часть его состояния была направлена в Ford Foundation, а контроль над компанией остался в руках семьи.
+                </p>
+                <div class="card-grid">
+                  <div class="mini-card">
+                    <div class="mini-label">Наследие</div>
+                    <div class="mini-value">Ford Foundation</div>
+                    <p>
+                      Крупный благотворительный фонд, финансирующий проекты в области образования, прав человека и экономического развития.
+                    </p>
+                  </div>
+                  <div class="mini-card">
+                    <div class="mini-label">Память</div>
+                    <div class="mini-value">Индустрия, культура, дискуссии</div>
+                    <p>
+                      Форд остаётся фигурой, которой восхищаются за инженерные достижения и одновременно критикуют за его общественные кампании и убеждения.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="section" aria-labelledby="section-summary">
+            <div class="section-inner">
+              <header class="section-header">
+                <div class="section-title">
+                  <div class="section-badge">8</div>
+                  <div>
+                    <h3 id="section-summary" class="lang-en">A short portrait of the man</h3>
+                    <h3 id="section-summary-ru" class="lang-ru">Краткое резюме личности</h3>
+                    <p class="section-kicker lang-en">How to remember Henry Ford today</p>
+                    <p class="section-kicker lang-ru">Как помнить Генри Форда сегодня</p>
+                  </div>
+                </div>
+              </header>
+              <div class="section-body lang-en">
+                <p>
+                  Henry Ford became a symbol of industrialization. He showed how standardized mass production could transform society and everyday life, bringing complex technology within reach of ordinary people and reshaping cities, roads, and work.
+                </p>
+                <p>
+                  At the same time his political and racial views left a heavy mark. Modern discussions of Ford try to hold both sides together: acknowledging his contribution to technology and economic growth while clearly recognizing the damage done by his antisemitism and the propaganda it fueled.
+                </p>
+                <div class="pill-row" aria-label="Words often used with his name">
+                  <span class="pill">Engineer</span>
+                  <span class="pill">Innovator</span>
+                  <span class="pill">Fordism</span>
+                  <span class="pill">Entrepreneur</span>
+                  <span class="pill">Controversial figure</span>
+                </div>
+              </div>
+              <div class="section-body lang-ru">
+                <p>
+                  Генри Форд стал символом эпохи индустриализации. Он показал, как стандартизированное массовое производство может радикально изменить общество и повседневную жизнь, сделав сложную технику доступной для обычных людей и перестроив города, дороги и труд.
+                </p>
+                <p>
+                  Одновременно его политические и расовые взгляды оставили тяжёлый след. Современный разговор о Форде стремится удерживать обе стороны: признавать его вклад в развитие техники и экономики и честно говорить о вреде его антисемитизма и той пропаганды, которую он подпитывал.
+                </p>
+                <div class="pill-row" aria-label="Слова, которые часто звучат рядом с его именем">
+                  <span class="pill">Инженер</span>
+                  <span class="pill">Инноватор</span>
+                  <span class="pill">Фордизм</span>
+                  <span class="pill">Предприниматель</span>
+                  <span class="pill">Спорная фигура</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <div class="lang-en">
+          Henry Ford - biographical scroll - tuned for mobile and desktop
+        </div>
+        <div class="lang-ru">
+          Генри Форд - биографический скролл - адаптировано для мобильных и десктопов
+        </div>
+        <div class="dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>
