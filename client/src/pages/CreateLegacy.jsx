@@ -24,6 +24,7 @@ const DEFAULT_PLATE_OPTIONS = {
   heightCm: 10,
   thicknessMm: 2,
   shape: 'rectangle',
+  cornerRadiusMm: 2,
 };
 
 const initialFormState = {
@@ -324,12 +325,15 @@ const CreateLegacy = () => {
           slug: result?.slug || '',
           legacyUrl: result?.legacyUrl || '',
           plateOptions: plateOptions || DEFAULT_PLATE_OPTIONS,
-          previewImage
+          previewImage,
+          title: displayTitle
         }}
         orderEmail={ORDER_EMAIL}
         formAction={ORDER_FORM_ENDPOINT}
         apiKey={ORDER_API_KEY}
         redirectUrl={ORDER_REDIRECT_URL}
+        apiBaseUrl={API_BASE_URL}
+        onSubmitted={() => setOrderForm(initialOrderState)}
         isDark={isDark}
       />
       <AboutModal open={isAboutOpen} onClose={() => setAboutOpen(false)} />

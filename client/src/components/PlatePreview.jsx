@@ -31,6 +31,7 @@ const SHAPE_SAFE_BORDER_SCALE = {
 };
 
 const LABEL_SCALE_FACTOR = 0.75;
+const DEFAULT_CORNER_RADIUS_MM = 2;
 
 const defaultDimensions = { width: 10, height: 10, depth: 0.2 };
 
@@ -762,6 +763,7 @@ const PlatePreview = ({ title, url, slug, onOptionsChange, onSnapshot, showContr
       widthCm: parseFloat(dimensions.width.toFixed(2)),
       heightCm: parseFloat(dimensions.height.toFixed(2)),
       thicknessMm: parseFloat((dimensions.depth * 10).toFixed(2)),
+      cornerRadiusMm: DEFAULT_CORNER_RADIUS_MM,
     });
   }, [
     border,

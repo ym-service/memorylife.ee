@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import generatePlateDxf from '../utils/generateDxf.js';
 
 const OrderModal = ({
   open,
@@ -11,13 +12,19 @@ const OrderModal = ({
   formAction = 'https://api.staticforms.xyz/submit',
   apiKey = '',
   redirectUrl = 'https://ym-service.github.io/memorylife.ee',
+  apiBaseUrl = '',
   isDark,
+  onSubmitted = () => {},
 }) => {
   const { t } = useLanguage();
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadState, setUploadState] = useState('idle');
+  const [uploadError, setUploadError] = useState('');
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const formRef = useRef(null);
+  const isAutoSubmittingRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
@@ -40,6 +47,8 @@ const OrderModal = ({
     if (!open) {
       setOffset({ x: 0, y: 0 });
       setIsDragging(false);
+      setUploadState('idle');
+      setUploadError('');
     }
   }, [open]);
 
@@ -93,6 +102,7 @@ const OrderModal = ({
     legacyUrl = '',
     plateOptions = {},
     previewImage = '',
+    title: engravingTitle = '',
   } = orderDetails;
 
   const asNumber = (value, fallback) =>
@@ -105,6 +115,7 @@ const OrderModal = ({
     heightCm: asNumber(plateOptions.heightCm, 10),
     thicknessMm: asNumber(plateOptions.thicknessMm, 2),
     shape: plateOptions.shape || 'rectangle',
+    cornerRadiusMm: asNumber(plateOptions.cornerRadiusMm, 2),
   };
 
   const shapeLabel =
@@ -114,11 +125,105 @@ const OrderModal = ({
     `Dimensions: ${normalizedPlate.widthCm}cm x ${normalizedPlate.heightCm}cm`,
     `Thickness: ${normalizedPlate.thicknessMm}mm`,
     `Shape: ${shapeLabel}`,
+    `Corner radius: ${normalizedPlate.cornerRadiusMm}mm`,
     `Engraved border: ${normalizedPlate.border ? 'Yes' : 'No'}`,
   ].join('\n');
 
   const plateOptionsJson = JSON.stringify(normalizedPlate);
   const subject = slug ? `Memorylife plaque order: ${slug}` : 'Memorylife plaque order';
+  const engravingText = engravingTitle || shapeLabel || 'Memorylife';
+
+  const uploadMessages = {
+    idle: '',
+    generating: t('modal.uploadStatus.generating'),
+    uploading: t('modal.uploadStatus.uploading'),
+    success: t('modal.uploadStatus.success'),
+    error: uploadError || t('modal.uploadStatus.error'),
+  };
+
+  const encodeBase64 = (value) => {
+    try {
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(value);
+      let binary = '';
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return window.btoa(binary);
+    } catch {
+      return null;
+    }
+  };
+
+  const uploadDxf = async () => {
+    if (!apiBaseUrl) {
+      throw new Error('Missing API endpoint for DXF upload.');
+    }
+    if (!slug) {
+      throw new Error('Missing plaque identifier.');
+    }
+    const widthMm = normalizedPlate.widthCm * 10;
+    const heightMm = normalizedPlate.heightCm * 10;
+    const { content, filename } = await generatePlateDxf({
+      widthMm,
+      heightMm,
+      cornerRadiusMm: normalizedPlate.cornerRadiusMm,
+      engravingText,
+      slug,
+      border: normalizedPlate.border,
+      url: legacyUrl,
+      shape: normalizedPlate.shape,
+    });
+    const base64 = encodeBase64(content);
+    if (!base64) {
+      throw new Error('Failed to encode DXF file.');
+    }
+    setUploadState('uploading');
+    const response = await fetch(`${apiBaseUrl}/upload-dxf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug,
+        legacyUrl,
+        plateOptions: normalizedPlate,
+        dxfFile: {
+          filename,
+          base64,
+          size: content.length,
+        },
+      }),
+    });
+    if (!response.ok) {
+      const errorPayload = await response.json().catch(() => ({}));
+      throw new Error(errorPayload?.message || 'DXF upload failed.');
+    }
+    return response.json();
+  };
+
+  const handleFormSubmit = async (event) => {
+    if (isAutoSubmittingRef.current) {
+      isAutoSubmittingRef.current = false;
+      return;
+    }
+    event.preventDefault();
+    setUploadError('');
+    setUploadState('generating');
+    try {
+      await uploadDxf();
+      setUploadState('success');
+      isAutoSubmittingRef.current = true;
+      if (typeof onSubmitted === 'function') {
+        onSubmitted();
+      }
+      if (formRef.current) {
+        formRef.current.submit();
+      }
+    } catch (error) {
+      console.error('DXF upload failed', error);
+      setUploadError(error.message);
+      setUploadState('error');
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
@@ -167,6 +272,8 @@ const OrderModal = ({
           action={formAction}
           method="POST"
           encType="multipart/form-data"
+          onSubmit={handleFormSubmit}
+          ref={formRef}
           className="mt-6 space-y-4"
         >
           <input type="hidden" name="accessKey" value={apiKey} />
@@ -267,10 +374,28 @@ const OrderModal = ({
           <p className={`text-xs ${mutedText}`}>
             {t('modal.redirectHint').replace('{url}', redirectUrl)}
           </p>
+          <p className={`text-xs ${mutedText}`}>{t('modal.dxfNotice')}</p>
+
+          {uploadState !== 'idle' && (
+            <p
+              className={`text-xs font-medium ${
+                uploadState === 'error'
+                  ? isDark
+                    ? 'text-red-300'
+                    : 'text-red-600'
+                  : isDark
+                  ? 'text-[#f5c6a8]'
+                  : 'text-[#7a4034]'
+              }`}
+            >
+              {uploadMessages[uploadState]}
+            </p>
+          )}
 
           <div className="flex items-center gap-3">
             <button
               type="submit"
+              disabled={uploadState === 'generating' || uploadState === 'uploading'}
               className="w-full rounded-2xl bg-brand-500 px-6 py-3 text-center text-lg font-semibold text-[#2d0f08] shadow-[0_12px_24px_rgba(255,122,41,0.35)] transition hover:bg-brand-400"
             >
               {t('modal.submit')}

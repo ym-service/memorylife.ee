@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const PDFDocument = require('pdfkit');
 const { Drawing } = require('dxf-writer');
 const QRCode = require('qrcode');
@@ -16,9 +17,34 @@ if (!fs.existsSync(TMP_DIR)) {
   fs.mkdirSync(TMP_DIR, { recursive: true });
 }
 
+const R2_BUCKET = process.env.R2_BUCKET || 'memorylife';
+const R2_FOLDER = process.env.R2_FOLDER || 'orders';
+const R2_PUBLIC_BASE_URL = (process.env.R2_PUBLIC_BASE_URL ||
+  'https://6b602e29a4c19258a6a6ac06f981b1d5.r2.cloudflarestorage.com/memorylife').replace(
+  /\/$/,
+  ''
+);
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ENDPOINT =
+  process.env.R2_ENDPOINT || (R2_ACCOUNT_ID ? `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : null);
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+
+const r2Client =
+  R2_BUCKET && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_ENDPOINT
+    ? new S3Client({
+        region: 'auto',
+        endpoint: R2_ENDPOINT,
+        credentials: {
+          accessKeyId: R2_ACCESS_KEY_ID,
+          secretAccessKey: R2_SECRET_ACCESS_KEY,
+        },
+      })
+    : null;
+
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
 const poolConfig = { connectionString };
@@ -78,6 +104,61 @@ const generateUniqueSlug = async (seed) => {
     attempt += 1;
   }
   return `${seed}-${Date.now()}`;
+};
+
+const sanitizeFilename = (value, fallback) => {
+  if (!value || typeof value !== 'string') {
+    return fallback;
+  }
+  const cleaned = value.replace(/[^a-z0-9_.-]+/gi, '_').replace(/_+/g, '_');
+  return cleaned || fallback;
+};
+
+const uploadBufferToR2 = async (key, buffer, contentType = 'application/octet-stream') => {
+  if (!r2Client || !R2_BUCKET || !buffer) {
+    return null;
+  }
+  try {
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+      })
+    );
+    if (R2_PUBLIC_BASE_URL) {
+      return `${R2_PUBLIC_BASE_URL}/${key}`;
+    }
+    return key;
+  } catch (error) {
+    console.error('Failed to upload file to R2', error);
+    return null;
+  }
+};
+
+const persistClientDxf = async ({ slug, filename, base64 }) => {
+  if (!base64) {
+    throw new Error('Missing DXF payload');
+  }
+  let buffer;
+  try {
+    buffer = Buffer.from(base64, 'base64');
+  } catch (error) {
+    throw new Error('Invalid DXF payload');
+  }
+  const safeSlug = slugSeedFromTitle(slug || 'legacy') || 'legacy';
+  const fallbackName = `memorylife-${safeSlug}-${Date.now()}.dxf`;
+  const safeFilename = sanitizeFilename(filename, fallbackName);
+  const filePath = path.join(TMP_DIR, safeFilename);
+  await fs.promises.writeFile(filePath, buffer);
+  let publicUrl = null;
+  if (buffer.length) {
+    const keyParts = [R2_FOLDER, safeSlug, safeFilename].filter(Boolean);
+    const key = keyParts.join('/');
+    publicUrl = await uploadBufferToR2(key, buffer, 'application/dxf');
+  }
+  return { filePath, filename: safeFilename, publicUrl };
 };
 
 const sanitizeNumber = (value, fallback = 0) => {
@@ -288,9 +369,40 @@ app.get('/api/legacy/:slug', async (req, res) => {
   }
 });
 
+app.post('/api/upload-dxf', async (req, res) => {
+  const { slug, dxfFile } = req.body || {};
+  if (!slug || !dxfFile?.base64) {
+    return res.status(400).json({ message: 'Slug and DXF file are required.' });
+  }
+  try {
+    const stored = await persistClientDxf({
+      slug,
+      filename: dxfFile.filename,
+      base64: dxfFile.base64,
+    });
+    res.json({
+      status: 'ok',
+      filename: stored.filename,
+      publicUrl: stored.publicUrl,
+    });
+  } catch (error) {
+    console.error('Failed to persist DXF upload', error);
+    res.status(500).json({ message: 'Failed to store DXF file.' });
+  }
+});
+
 app.post('/api/order', async (req, res) => {
-  const { name, email, phone = '', message = '', slug, legacyUrl, plateOptions, previewImage } =
-    req.body || {};
+  const {
+    name,
+    email,
+    phone = '',
+    message = '',
+    slug,
+    legacyUrl,
+    plateOptions,
+    previewImage,
+    clientDxf = null,
+  } = req.body || {};
 
   if (!name || !email || !message || !slug) {
     return res
@@ -312,7 +424,7 @@ app.post('/api/order', async (req, res) => {
     `Corner radius: ${normalizedPlate.cornerRadiusMm}mm`,
     `Engraved border: ${normalizedPlate.border ? 'Yes' : 'No'}`,
   ].join('\n');
-  const plainText = [
+  let plainText = [
     'New Memorylife plaque order:',
     `Name: ${name}`,
     `Email: ${email}`,
@@ -326,7 +438,7 @@ app.post('/api/order', async (req, res) => {
     message,
   ].join('\n');
 
-  const htmlBody = `
+  let htmlBody = `
     <h2>New Memorylife plaque order</h2>
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
@@ -347,6 +459,7 @@ app.post('/api/order', async (req, res) => {
 
   let pdfPath;
   let dxfPath;
+  let dxfPublicUrl = null;
 
   try {
     pdfPath = await createPdfSpec({
@@ -359,14 +472,30 @@ app.post('/api/order', async (req, res) => {
     console.error('Failed to create PDF spec', error);
   }
 
-  try {
-    dxfPath = await createDxfSpec({
-      slug,
-      legacyUrl: safeLegacyUrl,
-      plate: normalizedPlate,
-    });
-  } catch (error) {
-    console.error('Failed to create DXF spec', error);
+  if (clientDxf?.base64) {
+    try {
+      const storedDxf = await persistClientDxf({
+        slug,
+        filename: clientDxf.filename,
+        base64: clientDxf.base64,
+      });
+      dxfPath = storedDxf.filePath;
+      dxfPublicUrl = storedDxf.publicUrl;
+    } catch (error) {
+      console.error('Failed to persist provided DXF', error);
+    }
+  }
+
+  if (!dxfPath) {
+    try {
+      dxfPath = await createDxfSpec({
+        slug,
+        legacyUrl: safeLegacyUrl,
+        plate: normalizedPlate,
+      });
+    } catch (error) {
+      console.error('Failed to create DXF spec', error);
+    }
   }
 
   const attachments = [];
@@ -375,6 +504,11 @@ app.post('/api/order', async (req, res) => {
   }
   if (dxfPath) {
     attachments.push({ filename: path.basename(dxfPath), path: dxfPath });
+  }
+
+  if (dxfPublicUrl) {
+    plainText += `\nDXF download: ${dxfPublicUrl}\n`;
+    htmlBody += `<p><strong>DXF download:</strong> <a href="${dxfPublicUrl}" target="_blank">${dxfPublicUrl}</a></p>`;
   }
 
   try {
@@ -395,6 +529,7 @@ app.post('/api/order', async (req, res) => {
       files: {
         pdf: pdfPath ? path.basename(pdfPath) : null,
         dxf: dxfPath ? path.basename(dxfPath) : null,
+        dxfPublicUrl,
       },
     });
   } catch (error) {
