@@ -1,114 +1,80 @@
-import jsPDFLib from 'jspdf';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
-const getConstructor = (mod) => {
-  if (!mod) {
+const MM_TO_PT = 72 / 25.4;
+const A4_WIDTH = 210 * MM_TO_PT;
+const A4_HEIGHT = 297 * MM_TO_PT;
+const MARGIN = 18 * MM_TO_PT;
+
+const dataUrlToUint8Array = (value) => {
+  if (!value || typeof value !== 'string') {
     return null;
   }
-  if (typeof mod === 'function') {
-    return mod;
+  const [, base64] = value.split(',');
+  if (!base64) {
+    return null;
   }
-  if (typeof mod.jsPDF === 'function') {
-    return mod.jsPDF;
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
   }
-  if (typeof mod.default === 'function') {
-    return mod.default;
-  }
-  if (mod.default && typeof mod.default.jsPDF === 'function') {
-    return mod.default.jsPDF;
-  }
-  return null;
+  return bytes;
 };
 
-let cachedJsPdfConstructor = null;
-
-const loadJsPdf = async () => {
-  if (cachedJsPdfConstructor) {
-    return cachedJsPdfConstructor;
-  }
-  const primary = getConstructor(jsPDFLib);
-  if (primary) {
-    cachedJsPdfConstructor = primary;
-    return primary;
-  }
-  try {
-    const umdModule = await import('jspdf/dist/jspdf.umd.js');
-    const fallback = getConstructor(umdModule);
-    if (fallback) {
-      cachedJsPdfConstructor = fallback;
-      return fallback;
-    }
-  } catch (error) {
-    console.error('Failed to load jsPDF UMD bundle', error);
-  }
-  throw new Error('jsPDF constructor is unavailable.');
-};
-
-const sectionTitle = (doc, title, x, y) => {
-  if (typeof doc.setFontSize === 'function') {
-    doc.setFontSize(13);
-  }
-  if (typeof doc.setFont === 'function') {
-    doc.setFont('helvetica', 'bold');
-  }
-  doc.text(title, x, y);
-  return y + 6;
-};
-
-const wrapLine = (doc, text, maxWidth) => {
-  if (typeof text !== 'string' || !text.length) {
+const wrapText = (text, font, size, maxWidth) => {
+  if (!text) {
     return [''];
   }
-  if (typeof doc.splitTextToSize === 'function') {
-    const wrapped = doc.splitTextToSize(text, maxWidth);
-    return Array.isArray(wrapped) ? wrapped : [wrapped];
-  }
-  const approximateChars = Math.max(20, Math.min(120, Math.floor(maxWidth * 2)));
-  const result = [];
-  for (let i = 0; i < text.length; i += approximateChars) {
-    result.push(text.slice(i, i + approximateChars));
-  }
-  return result.length ? result : [text];
-};
-
-const sectionBody = (doc, text, x, y, maxWidth) => {
-  if (typeof doc.setFontSize === 'function') {
-    doc.setFontSize(10);
-  }
-  if (typeof doc.setFont === 'function') {
-    doc.setFont('helvetica', 'normal');
-  }
-  const lines = Array.isArray(text) ? text : [text];
-  let cursor = y;
-  lines.forEach((line) => {
-    const wrapped = wrapLine(doc, line, maxWidth);
-    wrapped.forEach((segment) => {
-      doc.text(segment, x, cursor);
-      cursor += 5;
-    });
-  });
-  return cursor + 2;
-};
-
-const loadImage = (src) =>
-  new Promise((resolve, reject) => {
-    if (!src) {
-      resolve(null);
-      return;
+  const words = text.split(/\s+/);
+  const lines = [];
+  let current = '';
+  words.forEach((word) => {
+    const tentative = current ? `${current} ${word}` : word;
+    const width = font.widthOfTextAtSize(tentative, size);
+    if (width <= maxWidth || !current) {
+      current = tentative;
+    } else {
+      lines.push(current);
+      current = word;
     }
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = (error) => reject(error);
-    img.src = src;
   });
+  if (current) {
+    lines.push(current);
+  }
+  return lines.length ? lines : [''];
+};
 
-const mapPlateDetails = (options) => [
-  `Material: ${options.material}`,
-  `Dimensions: ${options.widthCm}cm x ${options.heightCm}cm`,
-  `Thickness: ${options.thicknessMm}mm`,
-  `Shape: ${options.shape}`,
-  `Corner radius: ${options.cornerRadiusMm}mm`,
-  `Engraved border: ${options.border ? 'Yes' : 'No'}`,
-];
+const drawSection = ({ page, font, boldFont, title, text, cursorY }) => {
+  const titleSize = 13;
+  const bodySize = 10;
+  const maxWidth = A4_WIDTH - MARGIN * 2;
+  page.drawText(title, {
+    x: MARGIN,
+    y: cursorY,
+    size: titleSize,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  });
+  cursorY -= titleSize + 4;
+  const lines = Array.isArray(text) ? text : [text];
+  lines.forEach((line) => {
+    const wrapped = wrapText(line, font, bodySize, maxWidth);
+    wrapped.forEach((segment) => {
+      page.drawText(segment, {
+        x: MARGIN,
+        y: cursorY,
+        size: bodySize,
+        font,
+        color: rgb(0.1, 0.1, 0.1),
+      });
+      cursorY -= bodySize + 2;
+    });
+    cursorY -= 2;
+  });
+  cursorY -= 4;
+  return cursorY;
+};
 
 export const generateOrderPdf = async ({
   slug,
@@ -118,84 +84,128 @@ export const generateOrderPdf = async ({
   engravingText = 'Memorylife',
   previewImage = '',
 }) => {
-  const JsPdfConstructor = await loadJsPdf();
-  const doc = new JsPdfConstructor({ unit: 'mm', format: 'a4' });
-  if (typeof doc.text !== 'function') {
-    throw new Error('jsPDF text API is unavailable in this environment.');
-  }
-  const padding = 14;
-  let cursorY = padding;
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  if (typeof doc.setFont === 'function') {
-    doc.setFont('helvetica', 'bold');
-  }
-  if (typeof doc.setFontSize === 'function') {
-    doc.setFontSize(18);
-  }
-  doc.text('Memorylife Order Summary', padding, cursorY);
-  if (typeof doc.setFontSize === 'function') {
-    doc.setFontSize(11);
-  }
-  if (typeof doc.setFont === 'function') {
-    doc.setFont('helvetica', 'normal');
-  }
+  let cursorY = A4_HEIGHT - MARGIN;
+
+  const heading = 'Memorylife Order Summary';
+  const headingSize = 20;
+  page.drawText(heading, {
+    x: MARGIN,
+    y: cursorY,
+    size: headingSize,
+    font: boldFont,
+  });
+  cursorY -= headingSize + 6;
+
   const subheading = `Slug: ${slug || 'n/a'} • Legacy: ${legacyUrl || '-'}`;
-  cursorY += 6;
-  doc.text(subheading, padding, cursorY);
-  cursorY += 8;
+  const subSize = 11;
+  page.drawText(subheading, {
+    x: MARGIN,
+    y: cursorY,
+    size: subSize,
+    font,
+  });
+  cursorY -= subSize + 12;
 
-  cursorY = sectionTitle(doc, 'Engraving Text', padding, cursorY);
-  cursorY = sectionBody(doc, engravingText || 'Memorylife', padding, cursorY, 182);
+  cursorY = drawSection({
+    page,
+    font,
+    boldFont,
+    title: 'Engraving Text',
+    text: engravingText || 'Memorylife',
+    cursorY,
+  });
 
-  cursorY = sectionTitle(doc, 'Plate Configuration', padding, cursorY);
-  cursorY = sectionBody(doc, mapPlateDetails(plateOptions), padding, cursorY, 182);
+  const plateDetails = [
+    `Material: ${plateOptions.material}`,
+    `Dimensions: ${plateOptions.widthCm}cm x ${plateOptions.heightCm}cm`,
+    `Thickness: ${plateOptions.thicknessMm}mm`,
+    `Shape: ${plateOptions.shape}`,
+    `Corner radius: ${plateOptions.cornerRadiusMm}mm`,
+    `Engraved border: ${plateOptions.border ? 'Yes' : 'No'}`,
+  ];
+  cursorY = drawSection({
+    page,
+    font,
+    boldFont,
+    title: 'Plate Configuration',
+    text: plateDetails,
+    cursorY,
+  });
 
-  cursorY = sectionTitle(doc, 'Order Contact', padding, cursorY);
-  cursorY = sectionBody(
-    [
+  cursorY = drawSection({
+    page,
+    font,
+    boldFont,
+    title: 'Order Contact',
+    text: [
       `Name: ${orderForm.name || '-'}`,
       `Email: ${orderForm.email || '-'}`,
       `Phone: ${orderForm.phone || '-'}`,
     ],
-    padding,
     cursorY,
-    182
-  );
+  });
 
-  cursorY = sectionTitle(doc, 'Message', padding, cursorY);
-  cursorY = sectionBody(orderForm.message || '-', padding, cursorY, 182);
+  cursorY = drawSection({
+    page,
+    font,
+    boldFont,
+    title: 'Message',
+    text: orderForm.message || '-',
+    cursorY,
+  });
 
-  cursorY = sectionTitle(doc, 'Notes', padding, cursorY);
-  cursorY = sectionBody(
-    [
-      'Generated on client side along with DXF.',
-      'Preview image (right) represents the requested plaque.',
+  cursorY = drawSection({
+    page,
+    font,
+    boldFont,
+    title: 'Notes',
+    text: [
+      'Generated automatically on the client along with DXF.',
+      'Preview image (right) represents the selected plate.',
     ],
-    padding,
     cursorY,
-    120
-  );
+  });
 
-  try {
-    const img = await loadImage(previewImage);
-    if (img) {
-      const maxWidth = 80;
-      const maxHeight = 60;
-      const ratio = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
-      const renderWidth = img.width * ratio;
-      const renderHeight = img.height * ratio;
-      const x = doc.internal.pageSize.getWidth() - renderWidth - padding;
-      const y = doc.internal.pageSize.getHeight() - renderHeight - padding;
-      doc.roundedRect(x - 2, y - 2, renderWidth + 4, renderHeight + 4, 2, 2, 'S');
-      doc.addImage(previewImage, 'PNG', x, y, renderWidth, renderHeight);
+  const imageBytes = dataUrlToUint8Array(previewImage);
+  if (imageBytes) {
+    try {
+      const image = await pdfDoc.embedPng(imageBytes);
+      const maxWidth = 80 * MM_TO_PT;
+      const maxHeight = 60 * MM_TO_PT;
+      const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+      const imgWidth = image.width * scale;
+      const imgHeight = image.height * scale;
+      const x = A4_WIDTH - imgWidth - MARGIN;
+      const y = MARGIN;
+      page.drawRectangle({
+        x: x - 4,
+        y: y - 4,
+        width: imgWidth + 8,
+        height: imgHeight + 8,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+      page.drawImage(image, {
+        x,
+       y,
+        width: imgWidth,
+        height: imgHeight,
+      });
+    } catch (error) {
+      console.error('Failed to embed preview image into PDF', error);
     }
-  } catch (error) {
-    console.error('Preview image failed to load for PDF', error);
   }
 
   const filename = `memorylife-${slug || 'order'}-${Date.now()}-summary.pdf`;
+  const pdfBytes = await pdfDoc.save();
   return {
-    content: doc.output('arraybuffer'),
+    content: pdfBytes,
     filename,
   };
 };
