@@ -24,6 +24,22 @@ const sectionTitle = (doc, title, x, y) => {
   return y + 6;
 };
 
+const wrapLine = (doc, text, maxWidth) => {
+  if (typeof text !== 'string' || !text.length) {
+    return [''];
+  }
+  if (typeof doc.splitTextToSize === 'function') {
+    const wrapped = doc.splitTextToSize(text, maxWidth);
+    return Array.isArray(wrapped) ? wrapped : [wrapped];
+  }
+  const approximateChars = Math.max(20, Math.min(120, Math.floor(maxWidth * 2)));
+  const result = [];
+  for (let i = 0; i < text.length; i += approximateChars) {
+    result.push(text.slice(i, i + approximateChars));
+  }
+  return result.length ? result : [text];
+};
+
 const sectionBody = (doc, text, x, y, maxWidth) => {
   if (typeof doc.setFontSize === 'function') {
     doc.setFontSize(10);
@@ -34,9 +50,11 @@ const sectionBody = (doc, text, x, y, maxWidth) => {
   const lines = Array.isArray(text) ? text : [text];
   let cursor = y;
   lines.forEach((line) => {
-    const wrapped = doc.splitTextToSize(line, maxWidth);
-    doc.text(wrapped, x, cursor);
-    cursor += wrapped.length * 5;
+    const wrapped = wrapLine(doc, line, maxWidth);
+    wrapped.forEach((segment) => {
+      doc.text(segment, x, cursor);
+      cursor += 5;
+    });
   });
   return cursor + 2;
 };
