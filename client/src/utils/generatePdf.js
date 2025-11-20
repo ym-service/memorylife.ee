@@ -1,14 +1,44 @@
 import jsPDFLib from 'jspdf';
 
-const resolveJsPdf = () => {
-  if (typeof jsPDFLib === 'function') {
-    return jsPDFLib;
+const getConstructor = (mod) => {
+  if (!mod) {
+    return null;
   }
-  if (typeof jsPDFLib?.jsPDF === 'function') {
-    return jsPDFLib.jsPDF;
+  if (typeof mod === 'function') {
+    return mod;
   }
-  if (typeof jsPDFLib?.default === 'function') {
-    return jsPDFLib.default;
+  if (typeof mod.jsPDF === 'function') {
+    return mod.jsPDF;
+  }
+  if (typeof mod.default === 'function') {
+    return mod.default;
+  }
+  if (mod.default && typeof mod.default.jsPDF === 'function') {
+    return mod.default.jsPDF;
+  }
+  return null;
+};
+
+let cachedJsPdfConstructor = null;
+
+const loadJsPdf = async () => {
+  if (cachedJsPdfConstructor) {
+    return cachedJsPdfConstructor;
+  }
+  const primary = getConstructor(jsPDFLib);
+  if (primary) {
+    cachedJsPdfConstructor = primary;
+    return primary;
+  }
+  try {
+    const umdModule = await import('jspdf/dist/jspdf.umd.js');
+    const fallback = getConstructor(umdModule);
+    if (fallback) {
+      cachedJsPdfConstructor = fallback;
+      return fallback;
+    }
+  } catch (error) {
+    console.error('Failed to load jsPDF UMD bundle', error);
   }
   throw new Error('jsPDF constructor is unavailable.');
 };
@@ -88,8 +118,11 @@ export const generateOrderPdf = async ({
   engravingText = 'Memorylife',
   previewImage = '',
 }) => {
-  const JsPdfConstructor = resolveJsPdf();
+  const JsPdfConstructor = await loadJsPdf();
   const doc = new JsPdfConstructor({ unit: 'mm', format: 'a4' });
+  if (typeof doc.text !== 'function') {
+    throw new Error('jsPDF text API is unavailable in this environment.');
+  }
   const padding = 14;
   let cursorY = padding;
 
