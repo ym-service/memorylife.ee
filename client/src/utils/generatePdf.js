@@ -1,15 +1,36 @@
-import { jsPDF } from 'jspdf';
+import jsPDFLib from 'jspdf';
+
+const resolveJsPdf = () => {
+  if (typeof jsPDFLib === 'function') {
+    return jsPDFLib;
+  }
+  if (typeof jsPDFLib?.jsPDF === 'function') {
+    return jsPDFLib.jsPDF;
+  }
+  if (typeof jsPDFLib?.default === 'function') {
+    return jsPDFLib.default;
+  }
+  throw new Error('jsPDF constructor is unavailable.');
+};
 
 const sectionTitle = (doc, title, x, y) => {
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
+  if (typeof doc.setFontSize === 'function') {
+    doc.setFontSize(13);
+  }
+  if (typeof doc.setFont === 'function') {
+    doc.setFont('helvetica', 'bold');
+  }
   doc.text(title, x, y);
   return y + 6;
 };
 
 const sectionBody = (doc, text, x, y, maxWidth) => {
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
+  if (typeof doc.setFontSize === 'function') {
+    doc.setFontSize(10);
+  }
+  if (typeof doc.setFont === 'function') {
+    doc.setFont('helvetica', 'normal');
+  }
   const lines = Array.isArray(text) ? text : [text];
   let cursor = y;
   lines.forEach((line) => {
@@ -49,14 +70,24 @@ export const generateOrderPdf = async ({
   engravingText = 'Memorylife',
   previewImage = '',
 }) => {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const JsPdfConstructor = resolveJsPdf();
+  const doc = new JsPdfConstructor({ unit: 'mm', format: 'a4' });
   const padding = 14;
   let cursorY = padding;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
+
+  if (typeof doc.setFont === 'function') {
+    doc.setFont('helvetica', 'bold');
+  }
+  if (typeof doc.setFontSize === 'function') {
+    doc.setFontSize(18);
+  }
   doc.text('Memorylife Order Summary', padding, cursorY);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
+  if (typeof doc.setFontSize === 'function') {
+    doc.setFontSize(11);
+  }
+  if (typeof doc.setFont === 'function') {
+    doc.setFont('helvetica', 'normal');
+  }
   const subheading = `Slug: ${slug || 'n/a'} • Legacy: ${legacyUrl || '-'}`;
   cursorY += 6;
   doc.text(subheading, padding, cursorY);
