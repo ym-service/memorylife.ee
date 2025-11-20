@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import generatePlateDxf from '../utils/generateDxf.js';
+import generateOrderPdf from '../utils/generatePdf.js';
 
 const OrderModal = ({
   open,
@@ -143,43 +144,74 @@ const OrderModal = ({
 
   const encodeBase64 = (value) => {
     try {
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(value);
-      let binary = '';
-      bytes.forEach((byte) => {
-        binary += String.fromCharCode(byte);
-      });
-      return window.btoa(binary);
+      if (value instanceof ArrayBuffer) {
+        const bytes = new Uint8Array(value);
+        let binary = '';
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return window.btoa(binary);
+      }
+      if (value instanceof Uint8Array) {
+        let binary = '';
+        value.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return window.btoa(binary);
+      }
+      if (typeof value === 'string') {
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(value);
+        let binary = '';
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return window.btoa(binary);
+      }
     } catch {
       return null;
     }
+    return null;
   };
 
-  const uploadDxf = async () => {
+  const uploadOrderAssets = async () => {
     if (!apiBaseUrl) {
-      throw new Error('Missing API endpoint for DXF upload.');
+      throw new Error('Missing API endpoint for asset upload.');
     }
     if (!slug) {
       throw new Error('Missing plaque identifier.');
     }
+    setUploadState('generating');
     const widthMm = normalizedPlate.widthCm * 10;
     const heightMm = normalizedPlate.heightCm * 10;
-    const { content, filename } = await generatePlateDxf({
-      widthMm,
-      heightMm,
-      cornerRadiusMm: normalizedPlate.cornerRadiusMm,
-      engravingText,
-      slug,
-      border: normalizedPlate.border,
-      url: legacyUrl,
-      shape: normalizedPlate.shape,
-    });
-    const base64 = encodeBase64(content);
-    if (!base64) {
-      throw new Error('Failed to encode DXF file.');
+    const [{ content: dxfContent, filename: dxfFilename }, { content: pdfBuffer, filename: pdfFilename }] =
+      await Promise.all([
+        generatePlateDxf({
+          widthMm,
+          heightMm,
+          cornerRadiusMm: normalizedPlate.cornerRadiusMm,
+          engravingText,
+          slug,
+          border: normalizedPlate.border,
+          url: legacyUrl,
+          shape: normalizedPlate.shape,
+        }),
+        generateOrderPdf({
+          slug,
+          legacyUrl,
+          orderForm,
+          plateOptions: normalizedPlate,
+          engravingText,
+          previewImage,
+        }),
+      ]);
+    const dxfBase64 = encodeBase64(dxfContent);
+    const pdfBase64 = encodeBase64(pdfBuffer);
+    if (!dxfBase64 || !pdfBase64) {
+      throw new Error('Failed to encode DXF or PDF files.');
     }
     setUploadState('uploading');
-    const response = await fetch(`${apiBaseUrl}/upload-dxf`, {
+    const response = await fetch(`${apiBaseUrl}/upload-assets`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -187,15 +219,20 @@ const OrderModal = ({
         legacyUrl,
         plateOptions: normalizedPlate,
         dxfFile: {
-          filename,
-          base64,
-          size: content.length,
+          filename: dxfFilename,
+          base64: dxfBase64,
+          size: typeof dxfContent === 'string' ? dxfContent.length : undefined,
+        },
+        pdfFile: {
+          filename: pdfFilename,
+          base64: pdfBase64,
+          size: pdfBuffer?.byteLength,
         },
       }),
     });
     if (!response.ok) {
       const errorPayload = await response.json().catch(() => ({}));
-      throw new Error(errorPayload?.message || 'DXF upload failed.');
+      throw new Error(errorPayload?.message || 'Asset upload failed.');
     }
     return response.json();
   };
@@ -209,7 +246,7 @@ const OrderModal = ({
     setUploadError('');
     setUploadState('generating');
     try {
-      await uploadDxf();
+      await uploadOrderAssets();
       setUploadState('success');
       isAutoSubmittingRef.current = true;
       if (typeof onSubmitted === 'function') {
@@ -374,7 +411,7 @@ const OrderModal = ({
           <p className={`text-xs ${mutedText}`}>
             {t('modal.redirectHint').replace('{url}', redirectUrl)}
           </p>
-          <p className={`text-xs ${mutedText}`}>{t('modal.dxfNotice')}</p>
+          <p className={`text-xs ${mutedText}`}>{t('modal.assetsNotice')}</p>
 
           {uploadState !== 'idle' && (
             <p

@@ -137,18 +137,29 @@ const uploadBufferToR2 = async (key, buffer, contentType = 'application/octet-st
   }
 };
 
-const persistClientDxf = async ({ slug, filename, base64 }) => {
+const persistClientFile = async ({
+  slug,
+  filename,
+  base64,
+  extension = '',
+  contentType = 'application/octet-stream',
+}) => {
   if (!base64) {
-    throw new Error('Missing DXF payload');
+    throw new Error('Missing file payload');
   }
   let buffer;
   try {
     buffer = Buffer.from(base64, 'base64');
   } catch (error) {
-    throw new Error('Invalid DXF payload');
+    throw new Error('Invalid file payload');
   }
   const safeSlug = slugSeedFromTitle(slug || 'legacy') || 'legacy';
-  const fallbackName = `memorylife-${safeSlug}-${Date.now()}.dxf`;
+  const normalizedExtension = extension
+    ? extension.startsWith('.')
+      ? extension
+      : `.${extension}`
+    : '';
+  const fallbackName = `memorylife-${safeSlug}-${Date.now()}${normalizedExtension}`;
   const safeFilename = sanitizeFilename(filename, fallbackName);
   const filePath = path.join(TMP_DIR, safeFilename);
   await fs.promises.writeFile(filePath, buffer);
@@ -156,7 +167,7 @@ const persistClientDxf = async ({ slug, filename, base64 }) => {
   if (buffer.length) {
     const keyParts = [R2_FOLDER, safeSlug, safeFilename].filter(Boolean);
     const key = keyParts.join('/');
-    publicUrl = await uploadBufferToR2(key, buffer, 'application/dxf');
+    publicUrl = await uploadBufferToR2(key, buffer, contentType);
   }
   return { filePath, filename: safeFilename, publicUrl };
 };
@@ -369,25 +380,46 @@ app.get('/api/legacy/:slug', async (req, res) => {
   }
 });
 
-app.post('/api/upload-dxf', async (req, res) => {
-  const { slug, dxfFile } = req.body || {};
-  if (!slug || !dxfFile?.base64) {
-    return res.status(400).json({ message: 'Slug and DXF file are required.' });
+app.post('/api/upload-assets', async (req, res) => {
+  const { slug, dxfFile = null, pdfFile = null } = req.body || {};
+  if (!slug) {
+    return res.status(400).json({ message: 'Slug is required.' });
+  }
+  if (!dxfFile?.base64 && !pdfFile?.base64) {
+    return res.status(400).json({ message: 'No files to upload.' });
   }
   try {
-    const stored = await persistClientDxf({
-      slug,
-      filename: dxfFile.filename,
-      base64: dxfFile.base64,
-    });
-    res.json({
-      status: 'ok',
-      filename: stored.filename,
-      publicUrl: stored.publicUrl,
-    });
+    const result = { status: 'ok', files: {} };
+    if (dxfFile?.base64) {
+      const storedDxf = await persistClientFile({
+        slug,
+        filename: dxfFile.filename,
+        base64: dxfFile.base64,
+        extension: '.dxf',
+        contentType: 'application/dxf',
+      });
+      result.files.dxf = {
+        filename: storedDxf.filename,
+        publicUrl: storedDxf.publicUrl,
+      };
+    }
+    if (pdfFile?.base64) {
+      const storedPdf = await persistClientFile({
+        slug,
+        filename: pdfFile.filename,
+        base64: pdfFile.base64,
+        extension: '.pdf',
+        contentType: 'application/pdf',
+      });
+      result.files.pdf = {
+        filename: storedPdf.filename,
+        publicUrl: storedPdf.publicUrl,
+      };
+    }
+    res.json(result);
   } catch (error) {
-    console.error('Failed to persist DXF upload', error);
-    res.status(500).json({ message: 'Failed to store DXF file.' });
+    console.error('Failed to persist assets upload', error);
+    res.status(500).json({ message: 'Failed to store assets.' });
   }
 });
 
@@ -402,6 +434,7 @@ app.post('/api/order', async (req, res) => {
     plateOptions,
     previewImage,
     clientDxf = null,
+    clientPdf = null,
   } = req.body || {};
 
   if (!name || !email || !message || !slug) {
@@ -460,24 +493,45 @@ app.post('/api/order', async (req, res) => {
   let pdfPath;
   let dxfPath;
   let dxfPublicUrl = null;
+  let pdfPublicUrl = null;
 
-  try {
-    pdfPath = await createPdfSpec({
-      slug,
-      legacyUrl: safeLegacyUrl,
-      order: { name, email, phone, message, previewImage },
-      plate: normalizedPlate,
-    });
-  } catch (error) {
-    console.error('Failed to create PDF spec', error);
+  if (clientPdf?.base64) {
+    try {
+      const storedPdf = await persistClientFile({
+        slug,
+        filename: clientPdf.filename,
+        base64: clientPdf.base64,
+        extension: '.pdf',
+        contentType: 'application/pdf',
+      });
+      pdfPath = storedPdf.filePath;
+      pdfPublicUrl = storedPdf.publicUrl;
+    } catch (error) {
+      console.error('Failed to persist provided PDF', error);
+    }
+  }
+
+  if (!pdfPath) {
+    try {
+      pdfPath = await createPdfSpec({
+        slug,
+        legacyUrl: safeLegacyUrl,
+        order: { name, email, phone, message, previewImage },
+        plate: normalizedPlate,
+      });
+    } catch (error) {
+      console.error('Failed to create PDF spec', error);
+    }
   }
 
   if (clientDxf?.base64) {
     try {
-      const storedDxf = await persistClientDxf({
+      const storedDxf = await persistClientFile({
         slug,
         filename: clientDxf.filename,
         base64: clientDxf.base64,
+        extension: '.dxf',
+        contentType: 'application/dxf',
       });
       dxfPath = storedDxf.filePath;
       dxfPublicUrl = storedDxf.publicUrl;
@@ -510,6 +564,10 @@ app.post('/api/order', async (req, res) => {
     plainText += `\nDXF download: ${dxfPublicUrl}\n`;
     htmlBody += `<p><strong>DXF download:</strong> <a href="${dxfPublicUrl}" target="_blank">${dxfPublicUrl}</a></p>`;
   }
+  if (pdfPublicUrl) {
+    plainText += `\nPDF download: ${pdfPublicUrl}\n`;
+    htmlBody += `<p><strong>PDF download:</strong> <a href="${pdfPublicUrl}" target="_blank">${pdfPublicUrl}</a></p>`;
+  }
 
   try {
     const info = await emailTransport.sendMail({
@@ -529,6 +587,7 @@ app.post('/api/order', async (req, res) => {
       files: {
         pdf: pdfPath ? path.basename(pdfPath) : null,
         dxf: dxfPath ? path.basename(dxfPath) : null,
+        pdfPublicUrl,
         dxfPublicUrl,
       },
     });

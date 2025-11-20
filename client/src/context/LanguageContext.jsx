@@ -60,13 +60,13 @@ const translations = {
       attachmentHint: 'Upload logos, sketches, or measurements to help us manufacture the plaque.',
       redirectHint:
         'After submission StaticForms will redirect you to {url}. Check your inbox (and spam) for their confirmation email.',
-      dxfNotice:
-        'We will automatically generate a DXF file and upload it to the workshop before sending this form.',
+      assetsNotice:
+        'Before sending the form we automatically generate a DXF + PDF summary and upload both securely to the workshop.',
       uploadStatus: {
-        generating: 'Preparing a DXF file for manufacturing...',
-        uploading: 'Uploading the DXF file to the Memorylife workshop...',
-        success: 'DXF uploaded successfully. Sending your order form...',
-        error: 'DXF upload failed. Please try again.',
+        generating: 'Preparing DXF and PDF files for manufacturing...',
+        uploading: 'Uploading files to the Memorylife workshop...',
+        success: 'Files uploaded successfully. Sending your order form...',
+        error: 'DXF/PDF upload failed. Please try again.',
       },
       cancel: 'Cancel',
       submit: 'Send order email',
@@ -166,13 +166,13 @@ const translations = {
       attachmentHint: 'Laadige üles logod, visandid või mõõdud, et tootmine oleks täpsem.',
       redirectHint:
         'Pärast saatmist suunab StaticForms teid aadressile {url}. Kontrollige ka spämmi kausta.',
-      dxfNotice:
-        'Enne vormi saatmist genereerime automaatselt DXF-faili ja laadime selle meie tootmisesse.',
+      assetsNotice:
+        'Enne vormi saatmist genereerime automaatselt DXF + PDF kokkuvõtte ja laeme need turvaliselt tootmisse.',
       uploadStatus: {
-        generating: 'Valmistame DXF-faili tootmiseks...',
-        uploading: 'Laadime DXF-faili Memorylife’i tootmisesse...',
-        success: 'DXF edukalt üles laaditud. Saadame tellimusvormi...',
-        error: 'DXF-faili üleslaadimine ebaõnnestus. Palun proovi uuesti.',
+        generating: 'Valmistame DXF- ja PDF-faile tootmiseks...',
+        uploading: 'Laadime failid Memorylife’i tootmisesse...',
+        success: 'Failid on edukalt üles laetud. Saadame tellimusvormi...',
+        error: 'DXF/PDF üleslaadimine ebaõnnestus. Palun proovi uuesti.',
       },
       cancel: 'Tühista',
       submit: 'Saada tellimus',
@@ -272,13 +272,13 @@ const translations = {
       attachmentHint: 'Завантажте логотипи, ескізи або розміри для виготовлення.',
       redirectHint:
         'Після відправки StaticForms перенаправить вас на {url}. Перевірте пошту та спам для підтвердження.',
-      dxfNotice:
-        'Перед відправкою форми ми автоматично створюємо DXF і завантажуємо його до нашої майстерні.',
+      assetsNotice:
+        'Перед відправкою ми автоматично створюємо DXF + PDF звіт і безпечно завантажуємо файли до майстерні.',
       uploadStatus: {
-        generating: 'Готуємо DXF-файл для виробництва...',
-        uploading: 'Завантажуємо DXF-файл до майстерні Memorylife...',
-        success: 'DXF успішно завантажено. Надсилаємо форму...',
-        error: 'Не вдалося завантажити DXF-файл. Спробуйте ще раз.',
+        generating: 'Готуємо DXF та PDF файли для виробництва...',
+        uploading: 'Завантажуємо файли до майстерні Memorylife...',
+        success: 'Файли успішно завантажені. Надсилаємо форму...',
+        error: 'Помилка під час завантаження DXF/PDF. Спробуйте ще раз.',
       },
       cancel: 'Скасувати',
       submit: 'Надіслати замовлення',
@@ -378,13 +378,13 @@ const translations = {
       attachmentHint: 'Загрузите логотипы, эскизы или размеры для производства.',
       redirectHint:
         'После отправки StaticForms перенаправит вас на {url}. Проверьте почту и папку спам для подтверждения.',
-      dxfNotice:
-        'Перед отправкой формы мы автоматически создаём DXF-файл и загружаем его в мастерскую.',
+      assetsNotice:
+        'Перед отправкой формы мы автоматически создаём DXF + PDF отчёт и загружаем файлы в мастерскую.',
       uploadStatus: {
-        generating: 'Подготавливаем DXF-файл для производства...',
-        uploading: 'Загружаем DXF-файл в мастерскую Memorylife...',
-        success: 'DXF успешно загружен. Отправляем заявку...',
-        error: 'Не удалось загрузить DXF-файл. Попробуйте ещё раз.',
+        generating: 'Подготавливаем DXF и PDF файлы для производства...',
+        uploading: 'Загружаем файлы в мастерскую Memorylife...',
+        success: 'Файлы успешно загружены. Отправляем заявку...',
+        error: 'Не удалось загрузить DXF/PDF. Попробуйте ещё раз.',
       },
       cancel: 'Отменить',
       submit: 'Отправить заказ',
