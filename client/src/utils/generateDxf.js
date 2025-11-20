@@ -156,25 +156,40 @@ export const generatePlateDxf = async ({
     }
   }
 
-  const textY = h2 - height * 0.2;
-  const textHeight = Math.min(height * 0.1, 15);
-  dxf += addText(safeText, 0, textY, textHeight);
+  const padding = Math.min(width, height) * 0.08;
+  const safeWidth = width - padding * 2;
+  const safeHeight = height - padding * 2;
+
+  const headingHeight = Math.min(height * 0.12, 18);
+  const headingY = h2 - padding - headingHeight / 2;
+
+  const slugBaseHeight = Math.min(height * 0.08, 10);
+  const slugHeight = slugLabel
+    ? Math.min(slugBaseHeight, Math.max(4, (safeWidth / Math.max(slugLabel.length, 1)) * 0.7))
+    : slugBaseHeight;
+  const slugY = -h2 + padding + slugHeight / 2;
+
+  dxf += addText(safeText, 0, headingY, headingHeight);
   if (slugLabel) {
-    dxf += addText(slugLabel, 0, -h2 + height * 0.1, Math.min(height * 0.07, 10));
+    dxf += addText(slugLabel, 0, slugY, slugHeight);
   }
 
   const qr = QRCode.create(targetUrl, { errorCorrectionLevel: 'M' });
   const moduleCount = qr.modules.size;
   if (moduleCount > 0) {
-    const qrSizeMm = Math.min(width, height) * 0.5;
+    const qrAreaTop = headingY - headingHeight / 2 - padding;
+    const qrAreaBottom = slugY + slugHeight / 2 + padding;
+    const qrAreaHeight = Math.max(qrAreaTop - qrAreaBottom, safeHeight * 0.4);
+    const qrSizeMm = Math.min(qrAreaHeight, safeWidth);
     const moduleSize = qrSizeMm / moduleCount;
-    const qrStartY = h2 - height * 0.38;
-    const qrStartX = -(qrSizeMm / 2);
+    const qrBottom = qrAreaBottom + (qrAreaHeight - qrSizeMm) / 2;
+    const qrTop = qrBottom + qrSizeMm;
+    const qrStartX = -qrSizeMm / 2;
     for (let row = 0; row < moduleCount; row += 1) {
       for (let col = 0; col < moduleCount; col += 1) {
         if (qr.modules.get(col, row)) {
           const x = qrStartX + col * moduleSize;
-          const y = qrStartY - row * moduleSize - moduleSize;
+          const y = qrTop - (row + 1) * moduleSize;
           dxf += addSolid(x, y, moduleSize);
         }
       }

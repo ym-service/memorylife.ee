@@ -5,21 +5,21 @@ const A4_WIDTH = 210 * MM_TO_PT;
 const A4_HEIGHT = 297 * MM_TO_PT;
 const MARGIN = 18 * MM_TO_PT;
 
-const dataUrlToUint8Array = (value) => {
-  if (!value || typeof value !== 'string') {
+const loadImageBytes = async (src) => {
+  if (!src) {
     return null;
   }
-  const [, base64] = value.split(',');
-  if (!base64) {
+  try {
+    const response = await fetch(src);
+    if (!response.ok) {
+      return null;
+    }
+    const buffer = await response.arrayBuffer();
+    return new Uint8Array(buffer);
+  } catch (error) {
+    console.error('Failed to load preview image', error);
     return null;
   }
-  const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
 };
 
 const wrapText = (text, font, size, maxWidth) => {
@@ -171,7 +171,7 @@ export const generateOrderPdf = async ({
     cursorY,
   });
 
-  const imageBytes = dataUrlToUint8Array(previewImage);
+  const imageBytes = await loadImageBytes(previewImage);
   if (imageBytes) {
     try {
       const image = await pdfDoc.embedPng(imageBytes);
@@ -193,7 +193,7 @@ export const generateOrderPdf = async ({
       });
       page.drawImage(image, {
         x,
-       y,
+        y,
         width: imgWidth,
         height: imgHeight,
       });
